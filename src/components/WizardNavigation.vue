@@ -8,13 +8,24 @@
       <span class="nav-icon">🔮</span>
       <span class="nav-text">All Wizards</span>
     </NuxtLink>
+    <NuxtLink 
+      v-if="isDev" 
+      to="/wizard-test" 
+      class="nav-link" 
+      :class="{ active: route.path === '/wizard-test' }"
+    >
+      <span class="nav-icon">🧪</span>
+      <span class="nav-text">Test Wizards</span>
+    </NuxtLink>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
+import { computed } from 'vue'
 
 const route = useRoute()
+const isDev = computed(() => process.env.NODE_ENV === 'development')
 </script>
 
 <style scoped>

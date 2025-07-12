@@ -9,13 +9,14 @@ import type {
 // Initialize OpenAI client
 let openaiClient: OpenAI | null = null
 
-function getOpenAIClient(): OpenAI {
+function getOpenAIClient(): OpenAI | null {
   if (!openaiClient) {
     // Access environment variable directly in server context
     const apiKey = process.env.OPENAI_API_KEY
     
-    if (!apiKey) {
-      throw new Error('OpenAI API key is not configured')
+    if (!apiKey || apiKey === 'your_openai_api_key') {
+      console.warn('[AI Service] OpenAI API key not configured - AI features disabled')
+      return null
     }
     
     openaiClient = new OpenAI({
@@ -39,6 +40,11 @@ export async function processAIChat(
   } = {}
 ): Promise<string> {
   const client = getOpenAIClient()
+  
+  // Fallback to mock responses if no API key
+  if (!client) {
+    return getMockAIResponse(messages)
+  }
   
   const {
     model = 'gpt-4-turbo-preview',
@@ -68,6 +74,29 @@ export async function processAIChat(
     console.error('AI chat error:', error)
     throw new Error('Failed to process AI chat')
   }
+}
+
+/**
+ * Get mock AI response for testing without API key
+ */
+function getMockAIResponse(messages: AIMessage[]): string {
+  const lastMessage = messages[messages.length - 1]
+  const content = lastMessage.content.toLowerCase()
+  
+  // Mock responses based on content
+  if (content.includes('website') || content.includes('url')) {
+    return 'I would analyze your website for compliance, performance, and user experience issues. Since AI is not configured, this is a demo response.'
+  }
+  
+  if (content.includes('component') || content.includes('vue')) {
+    return 'I would help you generate a Vue component following FlexOS best practices. Please configure an OpenAI API key for full functionality.'
+  }
+  
+  if (content.includes('hello') || content.includes('hi')) {
+    return 'Hello! I\'m running in demo mode without AI. To enable full AI-powered features, please configure your OpenAI API key.'
+  }
+  
+  return 'This is a demo response. To enable AI-powered interactions, please configure your OpenAI API key in the environment variables.'
 }
 
 /**

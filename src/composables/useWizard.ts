@@ -87,13 +87,25 @@ export function useWizard() {
           
           // Add initial message
           addAssistantMessage(wizard.value.phases[0].prompt)
+          
+          // Check if AI is available
+          const aiStatus = await checkAIStatus()
+          if (!aiStatus.available) {
+            addAssistantMessage('⚠️ Note: AI features are currently in demo mode. Configure an OpenAI API key for full functionality.')
+          }
         }
       } else {
         throw new Error(response.error || 'Failed to load wizard')
       }
     } catch (error) {
       console.error('Failed to load wizard:', error)
-      addAssistantMessage('Sorry, I couldn\'t load the wizard. Please try again.')
+      
+      // More helpful error messages
+      if (error instanceof Error && error.message.includes('404')) {
+        addAssistantMessage(`Sorry, I couldn't find the wizard "${wizardId}". Please check the URL and try again.`)
+      } else {
+        addAssistantMessage('Sorry, I couldn\'t load the wizard. Please try refreshing the page.')
+      }
     } finally {
       isProcessing.value = false
     }
@@ -475,6 +487,16 @@ export function useWizard() {
 
   function generateSessionId(): string {
     return `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  }
+
+  // Helper functions
+  async function checkAIStatus(): Promise<{ available: boolean; message?: string }> {
+    try {
+      const response = await $fetch('/api/wizards/ai-status')
+      return response as { available: boolean; message?: string }
+    } catch (error) {
+      return { available: false, message: 'AI service unavailable' }
+    }
   }
 
   return {

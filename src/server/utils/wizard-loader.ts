@@ -12,9 +12,19 @@ const wizardCache = new Map<string, WizardConfig>()
 function getWizardsPath(): string {
   // In production, wizards might be in a different location
   const isDev = process.env.NODE_ENV === 'development'
-  return isDev 
-    ? join(process.cwd(), 'wizards')
-    : join(process.cwd(), '.output', 'wizards')
+  
+  // Try multiple possible locations
+  const possiblePaths = isDev 
+    ? [join(process.cwd(), 'wizards')]
+    : [
+        join(process.cwd(), '.output', 'public', 'wizards'),
+        join(process.cwd(), 'public', 'wizards'),
+        join(process.cwd(), 'wizards'),
+        join(process.cwd(), '.output', 'wizards')
+      ]
+  
+  // Return the first valid path or default
+  return possiblePaths[0]
 }
 
 /**
@@ -26,6 +36,8 @@ export async function getWizardList(): Promise<WizardConfig[]> {
   
   try {
     const files = await readdir(wizardsPath)
+    console.log(`[Wizard Loader] Found wizard directory at: ${wizardsPath}`)
+    console.log(`[Wizard Loader] Files found: ${files.join(', ')}`)
     
     for (const file of files) {
       if (file.endsWith('.yaml') || file.endsWith('.yml') || file.endsWith('.json')) {
@@ -33,12 +45,21 @@ export async function getWizardList(): Promise<WizardConfig[]> {
         const wizard = await loadWizardFile(join(wizardsPath, file), wizardId)
         if (wizard) {
           wizards.push(wizard)
+          console.log(`[Wizard Loader] Loaded wizard: ${wizardId}`)
         }
       }
     }
   } catch (error) {
-    console.warn('Wizards directory not found, using default wizards')
+    console.warn('[Wizard Loader] Wizards directory not found, using default wizards')
+    console.warn(`[Wizard Loader] Attempted path: ${wizardsPath}`)
+    console.warn(`[Wizard Loader] Error: ${error}`)
     // Return default wizards if directory doesn't exist
+    return getDefaultWizards()
+  }
+  
+  // If no wizards found in files, add defaults
+  if (wizards.length === 0) {
+    console.log('[Wizard Loader] No wizard files found, using defaults')
     return getDefaultWizards()
   }
   

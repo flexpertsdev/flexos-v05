@@ -49,6 +49,13 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'netlify'
+    preset: 'netlify',
+    // Ensure wizard files are copied to production
+    publicAssets: [
+      {
+        baseURL: '/wizards',
+        dir: '../wizards'
+      }
+    ]
   }
 })
