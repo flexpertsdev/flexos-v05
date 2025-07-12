@@ -31,7 +31,7 @@
             
             <ExpertGrid 
               :experts="experts"
-              :selected-expert="selectedExpertId"
+              :selected-expert="selectedExpertId || undefined"
               @select-expert="selectExpert"
             />
           </div>

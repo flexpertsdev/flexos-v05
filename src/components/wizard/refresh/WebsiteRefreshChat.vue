@@ -75,15 +75,15 @@
               <input 
                 type="checkbox" 
                 :value="option.value"
-                v-model="selectedOptions[message.id]"
+                v-model="selectedOptions[message.id!]"
               />
               <span class="checkbox-custom"></span>
               {{ option.label }}
             </label>
             <button 
-              @click="submitCheckboxes(message.id)" 
+              @click="message.id && submitCheckboxes(message.id)" 
               class="submit-button"
-              :disabled="!selectedOptions[message.id]?.length"
+              :disabled="!message.id || !selectedOptions[message.id]?.length"
             >
               Continue →
             </button>
@@ -100,7 +100,7 @@
               <input 
                 type="radio" 
                 :value="option.value"
-                v-model="selectedRadio[message.id]"
+                v-model="selectedRadio[message.id!]"
               />
               <span class="radio-custom"></span>
               <div class="radio-content">
@@ -110,9 +110,9 @@
               </div>
             </label>
             <button 
-              @click="submitRadio(message.id)" 
+              @click="message.id && submitRadio(message.id)" 
               class="submit-button"
-              :disabled="!selectedRadio[message.id]"
+              :disabled="!message.id || !selectedRadio[message.id]"
             >
               Continue →
             </button>

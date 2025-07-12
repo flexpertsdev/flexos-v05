@@ -64,6 +64,7 @@ export interface Expert {
   linkedin?: string
   videoCount?: number
   subscribers?: number
+  totalViews?: number
   featuredVideos?: Video[]
 }
 
@@ -73,6 +74,7 @@ export interface Video {
   thumbnail: string
   views: string
   duration: string
+  publishedAt?: string
 }
 
 const props = defineProps<{

@@ -21,10 +21,10 @@
               :type="message.inputType || 'text'"
               :placeholder="message.placeholder"
               class="text-input"
-              @keypress.enter="submitTextInput(message.field)"
+              @keypress.enter="message.field && submitTextInput(message.field)"
             />
             <button 
-              @click="submitTextInput(message.field)" 
+              @click="message.field && submitTextInput(message.field)" 
               class="submit-button" 
               :disabled="!formData[message.field]"
             >
@@ -128,9 +128,9 @@
           
           <!-- Video Upload -->
           <div v-else-if="message.type === 'video-upload'" class="upload-section">
-            <div class="upload-area" @click="$refs.fileInput.click()" @drop.prevent="handleDrop" @dragover.prevent>
+            <div class="upload-area" @click="fileInputRef?.click()" @drop.prevent="handleDrop" @dragover.prevent>
               <input 
-                ref="fileInput"
+                :ref="el => fileInputRef = el as HTMLInputElement"
                 type="file" 
                 accept="video/*"
                 @change="handleFileSelect"
@@ -229,6 +229,7 @@ const emit = defineEmits<{
 // State
 const messages = ref<Message[]>([])
 const messagesContainer = ref<HTMLElement>()
+const fileInputRef = ref<HTMLInputElement>()
 const isTyping = ref(false)
 
 // Form Data
