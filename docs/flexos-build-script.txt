@@ -1,0 +1,329 @@
+#!/usr/bin/env node
+
+/**
+ * FlexOS Page Builder Script
+ * Converts HTML mockups to Vue pages with pixel-perfect accuracy
+ * 
+ * Usage: node build-page.js [page-name]
+ * Example: node build-page.js landing
+ */
+
+import fs from 'fs/promises';
+import path from 'path';
+import { JSDOM } from 'jsdom';
+import prettier from 'prettier';
+
+class PageBuilder {
+  constructor(pageName) {
+    this.pageName = pageName;
+    this.mockupPath = `mockups/pages/${pageName}.html`;
+    this.outputPath = `src/pages/${pageName}.vue`;
+    this.mockupHtml = '';
+    this.dom = null;
+  }
+
+  async build() {
+    console.log(`🎨 Building ${this.pageName} page...`);
+    
+    try {
+      await this.loadMockup();
+      await this.parseMockup();
+      const vueComponent = await this.generateVueComponent();
+      await this.saveComponent(vueComponent);
+      await this.verifyBuild();
+      
+      console.log(`✅ Successfully built ${this.pageName} page!`);
+      console.log(`📁 Output: ${this.outputPath}`);
+    } catch (error) {
+      console.error(`❌ Error building ${this.pageName}:`, error.message);
+      process.exit(1);
+    }
+  }
+
+  async loadMockup() {
+    try {
+      this.mockupHtml = await fs.readFile(this.mockupPath, 'utf-8');
+    } catch (error) {
+      throw new Error(`Mockup not found at ${this.mockupPath}`);
+    }
+  }
+
+  async parseMockup() {
+    this.dom = new JSDOM(this.mockupHtml);
+    this.document = this.dom.window.document;
+  }
+
+  async generateVueComponent() {
+    // Extract key sections
+    const head = this.document.querySelector('head');
+    const body = this.document.querySelector('body');
+    
+    // Extract the main content (excluding scripts)
+    const mainContent = this.extractMainContent(body);
+    
+    // Extract interactive elements
+    const interactions = this.extractInteractions(body);
+    
+    // Extract any dynamic data needs
+    const dataNeeds = this.extractDataNeeds(body);
+    
+    // Generate the Vue component
+    const template = this.generateTemplate(mainContent);
+    const script = this.generateScript(interactions, dataNeeds);
+    const style = this.extractStyles(head);
+    
+    // Combine into SFC
+    const component = `
+<template>
+${template}
+</template>
+
+<script setup>
+${script}
+</script>
+
+${style ? `<style scoped>\n${style}\n</style>` : ''}
+`.trim();
+
+    // Format with prettier
+    return prettier.format(component, {
+      parser: 'vue',
+      semi: false,
+      singleQuote: true,
+      tabWidth: 2
+    });
+  }
+
+  extractMainContent(body) {
+    // Remove script tags but keep everything else
+    const clone = body.cloneNode(true);
+    clone.querySelectorAll('script').forEach(script => script.remove());
+    
+    // Convert any mockup-specific attributes to Vue
+    this.convertToVue(clone);
+    
+    return clone.innerHTML
+      .trim()
+      .split('\n')
+      .map(line => '  ' + line)
+      .join('\n');
+  }
+
+  convertToVue(element) {
+    // Convert onclick to @click
+    element.querySelectorAll('[onclick]').forEach(el => {
+      const handler = el.getAttribute('onclick');
+      el.removeAttribute('onclick');
+      el.setAttribute('@click', this.extractHandlerName(handler));
+    });
+    
+    // Convert href="#" to @click.prevent for SPA navigation
+    element.querySelectorAll('a[href^="#"]').forEach(el => {
+      const href = el.getAttribute('href');
+      if (href !== '#') {
+        el.setAttribute('@click.prevent', `navigateTo('${href}')`);
+      }
+    });
+    
+    // Add v-if for conditional elements
+    element.querySelectorAll('[data-show-if]').forEach(el => {
+      const condition = el.getAttribute('data-show-if');
+      el.setAttribute('v-if', condition);
+      el.removeAttribute('data-show-if');
+    });
+    
+    // Add v-for for repeated elements
+    element.querySelectorAll('[data-repeat]').forEach(el => {
+      const repeat = el.getAttribute('data-repeat');
+      el.setAttribute('v-for', `item in ${repeat}`);
+      el.setAttribute(':key', 'item.id');
+      el.removeAttribute('data-repeat');
+    });
+  }
+
+  extractHandlerName(onclickValue) {
+    // Extract function name from onclick="functionName()"
+    const match = onclickValue.match(/(\w+)\(/);
+    return match ? match[1] : 'handleClick';
+  }
+
+  extractInteractions(body) {
+    const interactions = new Set();
+    
+    // Find all interactive elements
+    body.querySelectorAll('[onclick], [data-action], button, a').forEach(el => {
+      if (el.hasAttribute('onclick')) {
+        interactions.add(this.extractHandlerName(el.getAttribute('onclick')));
+      }
+      if (el.hasAttribute('data-action')) {
+        interactions.add(el.getAttribute('data-action'));
+      }
+    });
+    
+    return Array.from(interactions);
+  }
+
+  extractDataNeeds(body) {
+    const dataNeeds = {
+      showStates: new Set(),
+      lists: new Set(),
+      forms: new Set()
+    };
+    
+    // Extract v-if conditions
+    body.querySelectorAll('[data-show-if]').forEach(el => {
+      dataNeeds.showStates.add(el.getAttribute('data-show-if'));
+    });
+    
+    // Extract lists
+    body.querySelectorAll('[data-repeat]').forEach(el => {
+      dataNeeds.lists.add(el.getAttribute('data-repeat'));
+    });
+    
+    // Extract form fields
+    body.querySelectorAll('input, textarea, select').forEach(el => {
+      const name = el.getAttribute('name') || el.getAttribute('id');
+      if (name) dataNeeds.forms.add(name);
+    });
+    
+    return dataNeeds;
+  }
+
+  generateTemplate(content) {
+    return `
+  <div>
+${content}
+  </div>`;
+  }
+
+  generateScript(interactions, dataNeeds) {
+    const refs = [];
+    const methods = [];
+    
+    // Add refs for show states
+    dataNeeds.showStates.forEach(state => {
+      refs.push(`const ${state} = ref(false)`);
+    });
+    
+    // Add refs for lists
+    dataNeeds.lists.forEach(list => {
+      refs.push(`const ${list} = ref([])`);
+    });
+    
+    // Add refs for form fields
+    dataNeeds.forms.forEach(field => {
+      refs.push(`const ${field} = ref('')`);
+    });
+    
+    // Add navigation
+    if (interactions.length > 0 || dataNeeds.showStates.size > 0) {
+      methods.push(`
+// Navigation helper
+const navigateTo = useNuxtApp().$router.push`);
+    }
+    
+    // Add interaction handlers
+    interactions.forEach(handler => {
+      methods.push(`
+// Handler for ${handler}
+const ${handler} = () => {
+  console.log('${handler} clicked')
+  // TODO: Implement ${handler}
+}`);
+    });
+    
+    // Add lifecycle
+    const lifecycle = `
+// Load any initial data
+onMounted(() => {
+  console.log('${this.pageName} page mounted')
+})`;
+    
+    return `
+import { ref, onMounted } from 'vue'
+
+// Page: ${this.pageName}
+// Generated from mockup: ${this.mockupPath}
+
+// Reactive data
+${refs.join('\n')}
+
+${methods.join('\n')}
+
+${lifecycle}
+`.trim();
+  }
+
+  extractStyles(head) {
+    // For now, we rely on global styles
+    // Later we can extract page-specific styles
+    return '';
+  }
+
+  async saveComponent(component) {
+    // Ensure directory exists
+    const dir = path.dirname(this.outputPath);
+    await fs.mkdir(dir, { recursive: true });
+    
+    // Save the component
+    await fs.writeFile(this.outputPath, component);
+  }
+
+  async verifyBuild() {
+    // Simple verification that file was created
+    try {
+      await fs.access(this.outputPath);
+      
+      // TODO: Add visual regression testing
+      // TODO: Add component validation
+      // TODO: Add accessibility checks
+      
+      return true;
+    } catch {
+      throw new Error('Failed to verify build output');
+    }
+  }
+}
+
+// CLI execution
+const pageName = process.argv[2];
+
+if (!pageName) {
+  console.error('❌ Please specify a page name');
+  console.log('Usage: node build-page.js [page-name]');
+  console.log('Example: node build-page.js landing');
+  process.exit(1);
+}
+
+// Run the builder
+const builder = new PageBuilder(pageName);
+builder.build();
+
+/**
+ * Future enhancements:
+ * 
+ * 1. Visual regression testing:
+ *    - Screenshot mockup and Vue page
+ *    - Compare for pixel differences
+ *    - Flag any discrepancies
+ * 
+ * 2. Component extraction:
+ *    - Identify repeated patterns
+ *    - Suggest component creation
+ *    - Refactor after initial build
+ * 
+ * 3. Type generation:
+ *    - Analyze data structures
+ *    - Generate TypeScript interfaces
+ *    - Add proper typing
+ * 
+ * 4. Test generation:
+ *    - Create basic component tests
+ *    - Test interactions work
+ *    - Test responsive behavior
+ * 
+ * 5. Documentation:
+ *    - Link to page documentation
+ *    - Add inline comments
+ *    - Generate README for page
+ */

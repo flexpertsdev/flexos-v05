@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>FlexOS - Build Apps with AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --bg-primary: #0F1419;
+            --bg-secondary: #1A1F26;
+            --bg-tertiary: #242B33;
+            --bg-quaternary: #2D3440;
+            
+            --text-primary: #F7F9FA;
+            --text-secondary: #D1D9E0;
+            --text-tertiary: #8B949E;
+            --text-muted: #6E7681;
+            
+            --border-primary: #30363D;
+            --border-secondary: #3A4046;
+            
+            --primary-500: #16C181;
+            --primary-400: #34D399;
+            --primary-600: #10A574;
+            
+            --purple-500: #8B5CF6;
+            --purple-400: #A855F7;
+            
+            --blue-500: #3B82F6;
+            --yellow-500: #EAB308;
+            --pink-500: #EC4899;
+            
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Animated Background */
+        .animated-bg {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .gradient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.3;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, var(--primary-500), transparent);
+            top: -200px;
+            right: -200px;
+            animation-delay: 0s;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, var(--purple-500), transparent);
+            bottom: -100px;
+            left: -100px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, var(--blue-500), transparent);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.1); }
+            66% { transform: translate(-30px, 30px) scale(0.9); }
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 20, 25, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-primary);
+            z-index: 100;
+            padding-top: var(--safe-area-top);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+        }
+
+        .login-btn {
+            padding: 0.5rem 1.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .login-btn:hover {
+            background: var(--bg-quaternary);
+            border-color: var(--border-secondary);
+        }
+
+        /* Hero Section */
+        .hero {
+            padding-top: calc(var(--safe-area-top) + 120px);
+            padding-bottom: 4rem;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text {
+            animation: slideInLeft 0.8s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--primary-400) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .cta-primary {
+            padding: 1rem 2rem;
+            background: var(--primary-500);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .cta-primary:hover::before {
+            transform: translateX(100%);
+        }
+
+        .cta-primary:hover {
+            background: var(--primary-600);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(22, 193, 129, 0.3);
+        }
+
+        .cta-secondary {
+            padding: 1rem 2rem;
+            background: transparent;
+            color: var(--text-primary);
+            border: 2px solid var(--border-secondary);
+            border-radius: 12px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cta-secondary:hover {
+            border-color: var(--primary-500);
+            color: var(--primary-500);
+            transform: translateY(-2px);
+        }
+
+        /* Chat Preview */
+        .chat-preview {
+            position: relative;
+            animation: slideInRight 0.8s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .chat-window {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            position: relative;
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: var(--bg-tertiary);
+            padding: 1.25rem;
+            border-bottom: 1px solid var(--border-primary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .chat-header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: var(--primary-500);
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8); }
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-message {
+            display: flex;
+            gap: 0.75rem;
+            animation: messageSlide 0.4s ease-out;
+        }
+
+        @keyframes messageSlide {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .chat-bubble {
+            background: var(--bg-tertiary);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            max-width: 80%;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--text-tertiary);
+            border-radius: 50%;
+            animation: typing 1.4s ease-in-out infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { opacity: 0.3; transform: scale(1); }
+            30% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .chat-input-area {
+            padding: 1rem;
+            border-top: 1px solid var(--border-primary);
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 24px;
+            padding: 0.75rem 1rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.875rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .chat-input:focus {
+            border-color: var(--primary-500);
+            background: var(--bg-quaternary);
+        }
+
+        .chat-send {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-500);
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .chat-send:hover {
+            background: var(--primary-600);
+            transform: scale(1.05);
+        }
+
+        .chat-send:disabled {
+            background: var(--bg-quaternary);
+            cursor: not-allowed;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 4rem 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-primary);
+        }
+
+        .features-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .features-title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .features-subtitle {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 1.125rem;
+            margin-bottom: 3rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 12px;
+            padding: 2rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-500), var(--purple-500));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--border-secondary);
+        }
+
+        .feature-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Mobile Menu */
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        /* Chat Suggestions */
+        .chat-suggestions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .suggestion-chip {
+            padding: 0.5rem 1rem;
+            background: var(--bg-quaternary);
+            border: 1px solid var(--border-primary);
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(22, 193, 129, 0.1);
+            border-color: var(--primary-500);
+            color: var(--primary-500);
+        }
+
+        /* Live Badge */
+        .live-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--primary-500);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: livePulse 2s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu-btn {
+                display: block;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 0 1rem;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.125rem;
+            }
+
+            .chat-preview {
+                max-width: 100%;
+            }
+
+            .chat-window {
+                height: 400px;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .cta-primary,
+            .cta-secondary {
+                width: 100%;
+                text-align: center;
+            }
+        }
+
+        /* Loading state */
+        .loading {
+            display: inline-flex;
+            gap: 0.25rem;
+        }
+
+        .loading-dot {
+            width: 4px;
+            height: 4px;
+            background: var(--primary-500);
+            border-radius: 50%;
+            animation: loadingBounce 1.4s ease-in-out infinite;
+        }
+
+        .loading-dot:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes loadingBounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <span style="font-size: 1.5rem;">🚀</span>
+                <span>FlexOS</span>
+            </div>
+            
+            <nav class="nav-links">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#pricing" class="nav-link">Pricing</a>
+                <a href="#docs" class="nav-link">Docs</a>
+                <button class="login-btn">Sign In</button>
+            </nav>
+            
+            <button class="mobile-menu-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12h18M3 6h18M3 18h18"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">
+                    Build Apps 10x Faster with AI
+                </h1>
+                <p class="hero-subtitle">
+                    Transform your ideas into production-ready applications in minutes. 
+                    Our AI assistant guides you through every step, from concept to deployment.
+                </p>
+                <div class="cta-buttons">
+                    <button class="cta-primary" onclick="startDemo()">
+                        Start Building Free
+                    </button>
+                    <button class="cta-secondary" onclick="watchVideo()">
+                        Watch Demo
+                    </button>
+                </div>
+            </div>
+
+            <div class="chat-preview">
+                <div class="live-badge">
+                    <span class="live-dot"></span>
+                    LIVE DEMO
+                </div>
+                
+                <div class="chat-window">
+                    <div class="chat-header">
+                        <div class="chat-header-title">
+                            <span>🧙</span>
+                            FlexOS AI Assistant
+                        </div>
+                        <div class="status-indicator"></div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="chat-message">
+                            <div class="chat-avatar">AI</div>
+                            <div class="chat-bubble">
+                                Hi! I'm your AI assistant. I can help you build amazing applications. 
+                                What would you like to create today?
+                            </div>
+                        </div>
+                        
+                        <div class="chat-suggestions" id="suggestions">
+                            <div class="suggestion-chip" onclick="selectSuggestion('E-commerce platform')">
+                                🛍️ E-commerce platform
+                            </div>
+                            <div class="suggestion-chip" onclick="selectSuggestion('SaaS dashboard')">
+                                📊 SaaS dashboard
+                            </div>
+                            <div class="suggestion-chip" onclick="selectSuggestion('Social app')">
+                                💬 Social app
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-area">
+                        <input 
+                            type="text" 
+                            class="chat-input" 
+                            id="chatInput"
+                            placeholder="Describe your app idea..."
+                            onkeypress="handleKeyPress(event)"
+                        >
+                        <button class="chat-send" id="sendButton" onclick="sendMessage()" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                                <path d="M22 2L11 13M22 2L15 22L11 13L2 9L22 2Z"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="features-content">
+            <h2 class="features-title">Everything You Need to Build</h2>
+            <p class="features-subtitle">From idea to deployment in record time</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🤖</div>
+                    <h3 class="feature-title">AI-Powered Development</h3>
+                    <p class="feature-description">
+                        Our AI understands your requirements and generates production-ready code instantly.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🎨</div>
+                    <h3 class="feature-title">Beautiful UI Components</h3>
+                    <p class="feature-description">
+                        Pre-built, customizable components that look great on every device.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Instant Deployment</h3>
+                    <p class="feature-description">
+                        Deploy to production with one click. We handle all the infrastructure.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3 class="feature-title">Built-in Security</h3>
+                    <p class="feature-description">
+                        Enterprise-grade security features included by default in every app.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3 class="feature-title">Real-time Analytics</h3>
+                    <p class="feature-description">
+                        Monitor your app's performance with built-in analytics and insights.
+                    </p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">🚀</div>
+                    <h3 class="feature-title">Scalable Infrastructure</h3>
+                    <p class="feature-description">
+                        Your apps automatically scale to handle millions of users.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Chat state
+        let messages = [];
+        let isTyping = false;
+        let conversationStarted = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            const input = document.getElementById('chatInput');
+            const sendButton = document.getElementById('sendButton');
+            
+            input.addEventListener('input', () => {
+                sendButton.disabled = !input.value.trim();
+            });
+        });
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function selectSuggestion(suggestion) {
+            const input = document.getElementById('chatInput');
+            input.value = suggestion;
+            document.getElementById('sendButton').disabled = false;
+            input.focus();
+            
+            // Hide suggestions after selection
+            setTimeout(() => {
+                sendMessage();
+            }, 100);
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+            
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            document.getElementById('sendButton').disabled = true;
+            
+            // Hide suggestions if this is the first message
+            if (!conversationStarted) {
+                const suggestions = document.getElementById('suggestions');
+                if (suggestions) {
+                    suggestions.style.display = 'none';
+                }
+                conversationStarted = true;
+            }
+            
+            // Simulate AI response
+            isTyping = true;
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                
+                if (message.toLowerCase().includes('e-commerce') || message.toLowerCase().includes('shop')) {
+                    addMessage('ai', "Great choice! An e-commerce platform is perfect for selling products online. I'll help you build a modern, fully-featured store with shopping cart, payment processing, and inventory management.");
+                    
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            removeTypingIndicator();
+                            addMessage('ai', "Let me start by asking a few questions to understand your vision better. Click 'Continue' to start building your e-commerce platform!");
+                            addContinueButton();
+                            isTyping = false;
+                        }, 1500);
+                    }, 1000);
+                } else if (message.toLowerCase().includes('saas') || message.toLowerCase().includes('dashboard')) {
+                    addMessage('ai', "Excellent! A SaaS dashboard is a great way to provide value to your users. I'll help you create a professional dashboard with user management, analytics, and billing.");
+                    
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            removeTypingIndicator();
+                            addMessage('ai', "Ready to design your SaaS platform? Click 'Continue' to start the setup wizard!");
+                            addContinueButton();
+                            isTyping = false;
+                        }, 1500);
+                    }, 1000);
+                } else if (message.toLowerCase().includes('social') || message.toLowerCase().includes('chat')) {
+                    addMessage('ai', "Perfect! A social app is a fantastic way to connect people. I'll help you build features like real-time messaging, user profiles, and content sharing.");
+                    
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            removeTypingIndicator();
+                            addMessage('ai', "Let's create something amazing together. Click 'Continue' to start building your social platform!");
+                            addContinueButton();
+                            isTyping = false;
+                        }, 1500);
+                    }, 1000);
+                } else {
+                    addMessage('ai', "That sounds interesting! I can help you build that. Let me understand your requirements better.");
+                    
+                    setTimeout(() => {
+                        showTypingIndicator();
+                        setTimeout(() => {
+                            removeTypingIndicator();
+                            addMessage('ai', "Click 'Continue' to start our detailed setup wizard where we'll plan every aspect of your application!");
+                            addContinueButton();
+                            isTyping = false;
+                        }, 1500);
+                    }, 1000);
+                }
+            }, 1500);
+        }
+
+        function addMessage(type, content) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'chat-message';
+            messageDiv.style.animationDelay = '0s';
+            
+            if (type === 'ai') {
+                messageDiv.innerHTML = `
+                    <div class="chat-avatar">AI</div>
+                    <div class="chat-bubble">${content}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="chat-bubble" style="background: rgba(22, 193, 129, 0.1); margin-left: auto;">
+                        ${content}
+                    </div>
+                `;
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'chat-message';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="chat-avatar">AI</div>
+                <div class="chat-bubble">
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typingIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function addContinueButton() {
+            const chatMessages = document.getElementById('chatMessages');
+            const buttonDiv = document.createElement('div');
+            buttonDiv.style.textAlign = 'center';
+            buttonDiv.style.marginTop = '1rem';
+            buttonDiv.innerHTML = `
+                <button onclick="launchWizard()" style="
+                    background: var(--primary-500);
+                    color: white;
+                    border: none;
+                    padding: 0.75rem 2rem;
+                    border-radius: 24px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.2s;
+                    font-size: 0.875rem;
+                " onmouseover="this.style.background='var(--primary-600)'" 
+                   onmouseout="this.style.background='var(--primary-500)'">
+                    Continue to Builder →
+                </button>
+            `;
+            chatMessages.appendChild(buttonDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function launchWizard() {
+            // Add loading state
+            const button = event.target;
+            button.innerHTML = '<div class="loading"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
+            button.disabled = true;
+            
+            // Simulate loading
+            setTimeout(() => {
+                // In real app, this would navigate to the wizard
+                window.location.href = '#wizard';
+                alert('Navigate to full wizard view!');
+            }, 1000);
+        }
+
+        function startDemo() {
+            // Scroll to chat and focus input
+            const chatInput = document.getElementById('chatInput');
+            chatInput.focus();
+            chatInput.placeholder = "Try: 'I want to build an e-commerce platform'";
+            
+            // Highlight the chat window
+            const chatWindow = document.querySelector('.chat-window');
+            chatWindow.style.boxShadow = '0 20px 60px rgba(22, 193, 129, 0.3)';
+            setTimeout(() => {
+                chatWindow.style.boxShadow = '0 20px 60px rgba(0, 0, 0, 0.5)';
+            }, 2000);
+        }
+
+        function watchVideo() {
+            alert('Video demo coming soon!');
+        }
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
