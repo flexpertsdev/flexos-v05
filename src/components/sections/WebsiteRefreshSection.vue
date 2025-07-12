@@ -62,7 +62,7 @@ const startWebsiteRefresh = () => {
     return
   }
   // Navigate to wizard with website refresh flow
-  window.location.href = `/wizard?mode=refresh&url=${encodeURIComponent(websiteUrl.value)}`
+  window.location.href = `/wizard/refresh?url=${encodeURIComponent(websiteUrl.value)}`
 }
 </script>
 

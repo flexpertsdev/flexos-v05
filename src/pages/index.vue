@@ -11,8 +11,11 @@
     <header class="header">
       <div class="header-content">
         <div class="logo">
-          <span style="font-size: 1.5rem;">🦸‍♀️</span>
-          <span>Flexi</span>
+          <img 
+            src="https://storage.googleapis.com/flutterflow-io-6f20.appspot.com/projects/flexpertsdev-pb6ym6/assets/hh0wb4fgqcrc/flexpertsLogoWhite.png" 
+            alt="Flexperts" 
+            class="logo-image"
+          />
         </div>
         
         <nav class="nav-links">
@@ -138,10 +141,18 @@ import FooterSection from '@/components/sections/FooterSection.vue'
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
+}
+
+.logo-image {
+  height: 32px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: 0.9;
+  transition: opacity 0.2s ease;
+}
+
+.logo-image:hover {
+  opacity: 1;
 }
 
 .nav-links {

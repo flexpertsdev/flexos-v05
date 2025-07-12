@@ -468,13 +468,6 @@ const closeVideo = () => {
   
   .tabs-navigation {
     width: 100%;
-    flex-direction: row;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .tab-button {
-    min-width: 250px;
   }
   
   .tab-panel {

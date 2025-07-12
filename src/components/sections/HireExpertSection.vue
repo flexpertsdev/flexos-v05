@@ -40,19 +40,40 @@
       </div>
       
       <div class="expert-visual">
-        <div class="expert-illustration">
-          <div class="illustration-card">
-            <div class="card-avatar">👨‍💻</div>
-            <div class="card-info">
-              <h5>Meet Your Flexpert</h5>
-              <p>Real developers, real solutions</p>
+        <div class="expert-carousel">
+          <transition name="fade" mode="out-in">
+            <div :key="currentExpert" class="expert-card">
+              <div class="expert-image">
+                <img 
+                  v-if="experts[currentExpert].image" 
+                  :src="experts[currentExpert].image" 
+                  :alt="experts[currentExpert].name"
+                >
+                <div v-else class="expert-emoji">{{ experts[currentExpert].emoji }}</div>
+              </div>
+              <div class="expert-info">
+                <h5 class="expert-name">{{ experts[currentExpert].name }}</h5>
+                <p class="expert-role">{{ experts[currentExpert].role }}</p>
+                <div class="expert-specialties">
+                  <span 
+                    v-for="skill in experts[currentExpert].skills" 
+                    :key="skill"
+                    class="skill-tag"
+                  >
+                    {{ skill }}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div class="illustration-features">
-            <div class="feature-item">✓ Vue.js Experts</div>
-            <div class="feature-item">✓ React Specialists</div>
-            <div class="feature-item">✓ Full-Stack Developers</div>
-            <div class="feature-item">✓ UI/UX Designers</div>
+          </transition>
+          <div class="carousel-dots">
+            <button 
+              v-for="(expert, index) in experts" 
+              :key="index"
+              class="dot"
+              :class="{ active: currentExpert === index }"
+              @click="currentExpert = index"
+            ></button>
           </div>
         </div>
       </div>
@@ -61,10 +82,73 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue'
+
+interface Expert {
+  name: string
+  role: string
+  skills: string[]
+  emoji?: string
+  image?: string
+}
+
+const currentExpert = ref(0)
+
+const experts = ref<Expert[]>([
+  {
+    name: 'Jos',
+    role: 'Founder & CEO',
+    skills: ['Strategy', 'Product Vision', 'Leadership'],
+    emoji: '👨‍💼',
+    // User can replace this with actual image URL
+    image: ''
+  },
+  {
+    name: 'John',
+    role: 'UX Design Lead',
+    skills: ['UI/UX', 'Figma', 'User Research'],
+    emoji: '🎨'
+  },
+  {
+    name: 'Izunna',
+    role: 'E-commerce Specialist',
+    skills: ['Shopify', 'WooCommerce', 'Payment Systems'],
+    emoji: '🛍️'
+  },
+  {
+    name: 'Dimitar',
+    role: 'Backend Architect',
+    skills: ['PHP', 'APIs', 'Database Design'],
+    emoji: '🔧'
+  },
+  {
+    name: 'Essam',
+    role: 'FlutterFlow Expert',
+    skills: ['FlutterFlow', 'Mobile Apps', 'Firebase'],
+    emoji: '📱'
+  }
+])
+
+let carouselInterval: NodeJS.Timeout
+
+const startCarousel = () => {
+  carouselInterval = setInterval(() => {
+    currentExpert.value = (currentExpert.value + 1) % experts.value.length
+  }, 4000) // Change expert every 4 seconds
+}
+
 const contactExpert = () => {
   // Navigate to contact form or open modal
   alert('Contact form coming soon! Email us at experts@flexperts.com')
 }
+
+onMounted(() => {
+  startCarousel()
+})
+
+onUnmounted(() => {
+  clearInterval(carouselInterval)
+})
 </script>
 
 <style scoped>
