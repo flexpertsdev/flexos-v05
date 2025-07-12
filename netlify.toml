@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+[context.production.environment]
+  NUXT_PUBLIC_SITE_URL = "https://flexos.app"
+
+[context.deploy-preview.environment]
+  NUXT_PUBLIC_SITE_URL = "https://deploy-preview--flexos.netlify.app"
+
+[context.branch-deploy.environment]
+  NUXT_PUBLIC_SITE_URL = "https://branch--flexos.netlify.app"
