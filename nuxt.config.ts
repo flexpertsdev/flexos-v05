@@ -48,6 +48,6 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'vercel'
+    preset: 'netlify'
   }
 })
