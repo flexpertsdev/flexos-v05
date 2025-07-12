@@ -3,8 +3,10 @@
 </template>
 
 <script setup lang="ts">
-import { navigateTo } from '#app'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // Redirect to the wizards list page
-await navigateTo('/wizards')
+router.push('/wizards')
 </script>
