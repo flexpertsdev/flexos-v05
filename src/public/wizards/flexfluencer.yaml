@@ -226,7 +226,7 @@ phases:
       - Bonus rewards for top performers
       
       Welcome to the Flexfluencer family! 🚀
-    inputType: none
+    inputType: text
 
   - id: exit
     name: Come Back Soon
@@ -239,7 +239,7 @@ phases:
       Feel free to return to this wizard anytime to complete your application.
       
       Have questions? Email us at flexfluencer@flexos.com
-    inputType: none
+    inputType: text
 
 outputs:
   - id: flexfluencer-application
