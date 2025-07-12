@@ -157,6 +157,7 @@ phases:
       Almost done! We just need your contact information.
       
       This is how we'll reach out about opportunities and send your earnings.
+    inputType: form
     inputs:
       - id: email
         label: Email Address

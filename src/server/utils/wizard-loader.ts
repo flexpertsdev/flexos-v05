@@ -141,12 +141,20 @@ async function loadWizardFile(filePath: string, wizardId: string): Promise<Wizar
  */
 function validateWizardConfig(config: any): boolean {
   if (!config.name || !config.phases || !Array.isArray(config.phases)) {
+    console.error('Wizard validation failed: missing name or phases')
     return false
   }
   
   // Validate each phase
-  for (const phase of config.phases) {
+  for (let i = 0; i < config.phases.length; i++) {
+    const phase = config.phases[i]
     if (!phase.id || !phase.type || !phase.prompt || !phase.inputType) {
+      console.error(`Phase ${i} (${phase.id || 'unknown'}) validation failed:`, {
+        hasId: !!phase.id,
+        hasType: !!phase.type,
+        hasPrompt: !!phase.prompt,
+        hasInputType: !!phase.inputType
+      })
       return false
     }
   }
