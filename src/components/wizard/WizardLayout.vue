@@ -3,11 +3,6 @@
     <!-- Progress Bar -->
     <WizardProgress :progress="progress" />
 
-    <!-- Chat Panel -->
-    <div class="chat-panel">
-      <slot name="chat" />
-    </div>
-
     <!-- Tab Navigation (Mobile) -->
     <div class="tab-nav">
       <button 
@@ -24,6 +19,11 @@
       >
         Magic ✨
       </button>
+    </div>
+
+    <!-- Chat Panel -->
+    <div class="chat-panel">
+      <slot name="chat" />
     </div>
 
     <!-- Process Panel -->
@@ -78,7 +78,9 @@ defineEmits<{
   display: none;
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border-primary);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .tab-button {
@@ -128,11 +130,12 @@ defineEmits<{
 @media (max-width: 768px) {
   .wizard-container {
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto 1fr;
   }
 
   .chat-panel {
     border-right: none;
+    grid-row: 3;
   }
 
   .tab-nav {
@@ -149,6 +152,7 @@ defineEmits<{
     bottom: 0;
     transform: translateX(100%);
     z-index: 90;
+    padding-top: calc(48px + 40px); /* Height of progress bar + tab nav */
   }
 
   .process-panel.active {
