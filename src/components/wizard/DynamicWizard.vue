@@ -1,20 +1,13 @@
 <template>
   <WizardLayout 
     :progress="progress" 
-    :active-tab="activeTab" 
+    :active-tab="activeTab"
+    :wizard-name="wizard?.name" 
     @tab-change="activeTab = $event"
+    @exit="handleExit"
   >
     <template #chat>
       <div class="chat-container">
-        <!-- Header -->
-        <div class="chat-header">
-          <h1 class="wizard-title">
-            <span class="wizard-icon">{{ wizard?.icon || '🔮' }}</span>
-            {{ wizard?.name || 'Loading...' }}
-          </h1>
-          <p class="wizard-subtitle">{{ currentPhase?.name || wizard?.description }}</p>
-        </div>
-
         <!-- Messages -->
         <div class="chat-messages" ref="messagesContainer">
           <TransitionGroup name="message">
@@ -167,6 +160,11 @@ function formatMessage(content: string): string {
   // Convert newlines to <br> tags
   return content.replace(/\n/g, '<br>')
 }
+
+function handleExit() {
+  // Handle any cleanup if needed
+  // Navigation is handled by WizardLayout which will route to /wizards
+}
 </script>
 
 <style scoped>
@@ -174,30 +172,6 @@ function formatMessage(content: string): string {
   display: flex;
   flex-direction: column;
   height: 100%;
-}
-
-.chat-header {
-  padding: 2rem;
-  border-bottom: 1px solid var(--border-primary);
-  background: var(--bg-tertiary);
-}
-
-.wizard-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.wizard-icon {
-  font-size: 1.5rem;
-}
-
-.wizard-subtitle {
-  color: var(--text-secondary);
-  font-size: 0.875rem;
 }
 
 .chat-messages {
@@ -382,14 +356,6 @@ function formatMessage(content: string): string {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .chat-header {
-    padding: 1rem;
-  }
-
-  .wizard-title {
-    font-size: 1.125rem;
-  }
-
   .chat-messages {
     padding: 1rem;
     gap: 1rem;

@@ -249,7 +249,7 @@ const formatNumber = (num: number) => {
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .expert-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
   }
   

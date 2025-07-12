@@ -1,30 +1,14 @@
 <template>
   <div class="academy-page">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-content">
-        <nuxt-link to="/" class="logo">
-          <img 
-            src="https://storage.googleapis.com/flutterflow-io-6f20.appspot.com/projects/flexpertsdev-pb6ym6/assets/hh0wb4fgqcrc/flexpertsLogoWhite.png" 
-            alt="Flexperts" 
-            class="logo-image"
-          />
-        </nuxt-link>
-        
-        <nav class="nav-links">
-          <a href="#curriculum" class="nav-link">Curriculum</a>
-          <a href="#pricing" class="nav-link">Pricing</a>
-          <a href="#testimonials" class="nav-link">Success Stories</a>
-          <a href="#application" class="nav-link cta-link">Apply Now</a>
-        </nav>
-        
-        <button class="mobile-menu-btn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12h18M3 6h18M3 18h18"/>
-          </svg>
-        </button>
-      </div>
-    </header>
+    <AppHeader title="FlexOS Academy">
+      <template #action>
+        <a href="#application" class="apply-button">Apply Now</a>
+      </template>
+    </AppHeader>
+    
+    <!-- Mobile Navigation -->
+    <BottomSheet v-model="menuOpen" />
     
     <!-- Main Content -->
     <main>
@@ -159,10 +143,15 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useNavigation } from '@/composables/useNavigation'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import BottomSheet from '@/components/layout/BottomSheet.vue'
 import AcademyHero from '@/components/academy/AcademyHero.vue'
 import CurriculumTimeline from '@/components/academy/CurriculumTimeline.vue'
 import PricingSection from '@/components/academy/PricingSection.vue'
 import TestimonialsCarousel from '@/components/academy/TestimonialsCarousel.vue'
+
+const { menuOpen } = useNavigation()
 
 // Application form
 const application = ref({
@@ -237,80 +226,25 @@ const toggleFaq = (index: number) => {
 .academy-page {
   min-height: 100vh;
   background: var(--bg-primary);
+  padding-top: calc(60px + env(safe-area-inset-top, 0)); /* Account for fixed header */
 }
 
-/* Header */
-.page-header {
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: rgba(var(--bg-primary-rgb), 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-primary);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo-image {
-  height: 32px;
-  width: auto;
-  filter: brightness(0) invert(1);
-  opacity: 0.9;
-  transition: opacity 0.2s ease;
-}
-
-.logo-image:hover {
-  opacity: 1;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.nav-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: var(--primary-500);
-}
-
-.cta-link {
+/* Header Action Button */
+.apply-button {
   padding: 0.5rem 1rem;
   background: var(--primary-500);
   color: white;
   border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  display: inline-block;
 }
 
-.cta-link:hover {
+.apply-button:hover {
   background: var(--primary-600);
-  color: white;
-}
-
-.mobile-menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 0.5rem;
+  transform: translateY(-2px);
 }
 
 /* Application Section */
@@ -589,12 +523,13 @@ const toggleFaq = (index: number) => {
 }
 
 @media (max-width: 768px) {
-  .nav-links {
-    display: none;
+  .academy-page {
+    padding-top: calc(56px + env(safe-area-inset-top, 0)); /* Mobile header height */
   }
   
-  .mobile-menu-btn {
-    display: block;
+  .apply-button {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
   }
   
   .form-grid {

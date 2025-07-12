@@ -8,42 +8,34 @@
     </div>
 
     <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo">
-          <img 
-            src="https://storage.googleapis.com/flutterflow-io-6f20.appspot.com/projects/flexpertsdev-pb6ym6/assets/hh0wb4fgqcrc/flexpertsLogoWhite.png" 
-            alt="Flexperts" 
-            class="logo-image"
-          />
-        </div>
-        
-        <nav class="nav-links">
-          <a href="#experts" class="nav-link">Get Help from Experts</a>
-          <button class="login-btn">Sign In</button>
-        </nav>
-        
-        <button class="mobile-menu-btn">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 12h18M3 6h18M3 18h18"/>
-          </svg>
-        </button>
-      </div>
-    </header>
+    <AppHeader title="FlexOS">
+      <template #action>
+        <button class="login-btn" @click="handleLogin">Sign In</button>
+      </template>
+    </AppHeader>
+    
+    <!-- Mobile Navigation -->
+    <BottomSheet v-model="menuOpen" />
 
-    <!-- Components -->
-    <HeroSection />
-    <DifferentiatorsSection />
-    <FeaturesSection />
-    <PricingSection />
-    <HireExpertSection />
-    <WebsiteRefreshSection />
-    <CommunityShowcase />
-    <FooterSection />
+    <!-- Main Content -->
+    <main class="main-content">
+      <HeroSection />
+      <DifferentiatorsSection />
+      <FeaturesSection />
+      <PricingSection />
+      <HireExpertSection />
+      <WebsiteRefreshSection />
+      <CommunityShowcase />
+      <FooterSection />
+    </main>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+import { useNavigation } from '@/composables/useNavigation'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import BottomSheet from '@/components/layout/BottomSheet.vue'
 import HeroSection from '@/components/sections/HeroSection.vue'
 import DifferentiatorsSection from '@/components/sections/DifferentiatorsSection.vue'
 import FeaturesSection from '@/components/sections/FeaturesSection.vue'
@@ -52,9 +44,21 @@ import HireExpertSection from '@/components/sections/HireExpertSection.vue'
 import WebsiteRefreshSection from '@/components/sections/WebsiteRefreshSection.vue'
 import CommunityShowcase from '@/components/sections/CommunityShowcase.vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
+
+const { menuOpen } = useNavigation()
+
+const handleLogin = () => {
+  // Handle login logic
+  console.log('Login clicked')
+}
 </script>
 
 <style scoped>
+/* Main Content */
+.main-content {
+  padding-top: calc(60px + env(safe-area-inset-top, 0)); /* Account for fixed header */
+}
+
 /* Animated Background */
 .animated-bg {
   position: fixed;
@@ -116,61 +120,7 @@ import FooterSection from '@/components/sections/FooterSection.vue'
   }
 }
 
-/* Header */
-.header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 100;
-  background: rgba(var(--bg-primary-rgb), 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--border-primary);
-  padding: 1rem 0;
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-}
-
-.logo-image {
-  height: 32px;
-  width: auto;
-  filter: brightness(0) invert(1);
-  opacity: 0.9;
-  transition: opacity 0.2s ease;
-}
-
-.logo-image:hover {
-  opacity: 1;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.nav-link {
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-weight: 500;
-  transition: color 0.2s;
-}
-
-.nav-link:hover {
-  color: var(--primary-500);
-}
+/* Header Action Button */
 
 .login-btn {
   padding: 0.5rem 1.5rem;
@@ -188,23 +138,15 @@ import FooterSection from '@/components/sections/FooterSection.vue'
   transform: translateY(-2px);
 }
 
-.mobile-menu-btn {
-  display: none;
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 0.5rem;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
-  .nav-links {
-    display: none;
+  .main-content {
+    padding-top: calc(56px + env(safe-area-inset-top, 0)); /* Mobile header height */
   }
   
-  .mobile-menu-btn {
-    display: block;
+  .login-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
   }
 }
 </style>

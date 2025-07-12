@@ -1,14 +1,22 @@
 <template>
-  <div class="wizard-list-container">
-    <div class="header">
-      <h1 class="title">
-        <span class="icon">🔮</span>
-        FlexOS Wizards
-      </h1>
-      <p class="subtitle">
-        Choose a wizard to help you build something amazing
-      </p>
-    </div>
+  <div class="wizard-list-page">
+    <!-- Header -->
+    <AppHeader title="FlexOS" />
+    
+    <!-- Mobile Navigation -->
+    <BottomSheet v-model="menuOpen" />
+    
+    <!-- Main Content -->
+    <div class="wizard-list-container">
+      <div class="header">
+        <h1 class="title">
+          <span class="icon">🔮</span>
+          FlexOS Wizards
+        </h1>
+        <p class="subtitle">
+          Choose a wizard to help you build something amazing
+        </p>
+      </div>
 
     <div v-if="loading" class="loading">
       <div class="spinner"></div>
@@ -38,12 +46,18 @@
         </div>
       </NuxtLink>
     </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useNavigation } from '~/composables/useNavigation'
+import AppHeader from '~/components/layout/AppHeader.vue'
+import BottomSheet from '~/components/layout/BottomSheet.vue'
 import type { WizardConfig } from '~/types/wizard'
+
+const { menuOpen } = useNavigation()
 
 const wizards = ref<WizardConfig[]>([])
 const loading = ref(true)
@@ -75,6 +89,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.wizard-list-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  padding-top: calc(60px + env(safe-area-inset-top, 0)); /* Account for fixed header */
+}
+
 .wizard-list-container {
   min-height: 100vh;
   background: var(--bg-primary);
@@ -219,6 +239,10 @@ onMounted(() => {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
+  .wizard-list-page {
+    padding-top: calc(56px + env(safe-area-inset-top, 0)); /* Mobile header height */
+  }
+
   .wizard-list-container {
     padding: 1rem;
   }

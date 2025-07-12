@@ -1,22 +1,16 @@
 <template>
   <div class="meet-page">
     <!-- Header -->
-    <header class="page-header">
-      <div class="header-content">
-        <nuxt-link to="/" class="back-link">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Back to Home
-        </nuxt-link>
-        
-        <h1 class="page-title">Meet the Flexperts</h1>
-        
+    <AppHeader title="FlexOS">
+      <template #action>
         <nuxt-link to="/academy" class="earn-button">
           💰 Earn as a Flexpert
         </nuxt-link>
-      </div>
-    </header>
+      </template>
+    </AppHeader>
+    
+    <!-- Mobile Navigation -->
+    <BottomSheet v-model="menuOpen" />
     
     <!-- Main Content -->
     <main class="main-content">
@@ -67,10 +61,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useNavigation } from '@/composables/useNavigation'
+import AppHeader from '@/components/layout/AppHeader.vue'
+import BottomSheet from '@/components/layout/BottomSheet.vue'
 import ExpertGrid from '@/components/meet/ExpertGrid.vue'
 import ExpertProfile from '@/components/meet/ExpertProfile.vue'
 import YouTubeShowcase from '@/components/meet/YouTubeShowcase.vue'
 import type { Expert } from '@/components/meet/ExpertGrid.vue'
+
+const { menuOpen } = useNavigation()
 // Import images using Nuxt assets
 import josImage from '@/assets/images/flexperts/jos.png'
 import dimitarImage from '@/assets/images/flexperts/dimitar.png'
@@ -225,47 +224,10 @@ watch(() => route.params.expert, (newExpert) => {
 .meet-page {
   min-height: 100vh;
   background: var(--bg-primary);
+  padding-top: calc(60px + env(safe-area-inset-top, 0)); /* Account for fixed header */
 }
 
-/* Header */
-.page-header {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-primary);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.back-link {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--text-secondary);
-  text-decoration: none;
-  font-size: 0.875rem;
-  transition: color 0.2s;
-}
-
-.back-link:hover {
-  color: var(--primary-500);
-}
-
-.page-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-}
-
+/* Action Button */
 .earn-button {
   padding: 0.5rem 1rem;
   background: var(--primary-500);
@@ -353,25 +315,13 @@ watch(() => route.params.expert, (newExpert) => {
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .header-content {
-    padding: 1rem;
-  }
-  
-  .page-title {
-    font-size: 1.25rem;
+  .meet-page {
+    padding-top: calc(56px + env(safe-area-inset-top, 0)); /* Mobile header height */
   }
   
   .earn-button {
     padding: 0.5rem 0.75rem;
     font-size: 0.75rem;
-  }
-  
-  .back-link {
-    font-size: 0;
-  }
-  
-  .back-link svg {
-    font-size: 1rem;
   }
   
   .intro-text {
