@@ -1,7 +1,7 @@
 import { defineEventHandler, getRouterParam } from 'h3'
 import { getWizardConfig } from '~/server/utils/wizard-loader'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   const wizardId = getRouterParam(event, 'id')
   
   if (!wizardId) {

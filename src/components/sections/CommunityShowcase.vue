@@ -56,12 +56,12 @@
       
       <div class="influencer-section">
         <div class="influencer-card">
-          <div class="influencer-icon">💰</div>
+          <div class="influencer-icon">🚀</div>
           <div class="influencer-content">
-            <h3>Become a FlexOS Influencer</h3>
-            <p>Share FlexOS with your audience and earn 30% commission on every subscription</p>
+            <h3>Become a Flexfluencer</h3>
+            <p>Earn money by promoting apps to your audience</p>
             <button class="influencer-cta" @click="applyInfluencer">
-              Apply to Partner Program
+              Start Earning as a Flexfluencer
             </button>
           </div>
         </div>
@@ -266,7 +266,8 @@ const closeProjectPreview = () => {
 }
 
 const applyInfluencer = () => {
-  alert('Partner program application coming soon! Email us at partners@flexos.app')
+  // Navigate to the flexfluencer wizard
+  window.location.href = '/wizard/flexfluencer'
 }
 
 const startSimilarProject = () => {

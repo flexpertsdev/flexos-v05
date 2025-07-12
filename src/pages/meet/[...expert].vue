@@ -71,6 +71,12 @@ import ExpertGrid from '@/components/meet/ExpertGrid.vue'
 import ExpertProfile from '@/components/meet/ExpertProfile.vue'
 import YouTubeShowcase from '@/components/meet/YouTubeShowcase.vue'
 import type { Expert } from '@/components/meet/ExpertGrid.vue'
+// Import images using Nuxt assets
+import josImage from '@/assets/images/flexperts/jos.png'
+import dimitarImage from '@/assets/images/flexperts/dimitar.png'
+import bellaImage from '@/assets/images/flexperts/bella.png'
+import rosieImage from '@/assets/images/flexperts/rosie.png'
+import satoshiImage from '@/assets/images/flexperts/satoshi.png'
 
 const route = useRoute()
 const router = useRouter()
@@ -83,6 +89,7 @@ const experts = ref<Expert[]>([
     role: 'Founder & CEO',
     skills: ['Strategy', 'Product Vision', 'Leadership', 'Flutter', 'AI Integration'],
     emoji: '👨‍💼',
+    image: josImage,
     bio: 'Founder of Flexperts with a vision to democratize app development. Passionate about helping entrepreneurs and businesses build amazing products without traditional coding barriers.',
     youtube: 'https://youtube.com/@flexperts',
     twitter: 'https://twitter.com/flexpertsdev',
@@ -115,6 +122,7 @@ const experts = ref<Expert[]>([
     role: 'UX Design Lead',
     skills: ['UI/UX', 'Figma', 'User Research', 'Design Systems', 'Prototyping'],
     emoji: '🎨',
+    image: bellaImage,
     bio: 'UX designer with 10+ years of experience creating intuitive and beautiful user interfaces. Specializes in converting complex requirements into simple, elegant solutions.',
     twitter: 'https://twitter.com/johnuxdesign',
     videoCount: 28,
@@ -127,6 +135,7 @@ const experts = ref<Expert[]>([
     role: 'E-commerce Specialist',
     skills: ['Shopify', 'WooCommerce', 'Payment Systems', 'Conversion Optimization', 'Analytics'],
     emoji: '🛍️',
+    image: rosieImage,
     bio: 'E-commerce expert helping businesses scale their online presence. Specialized in creating high-converting stores and implementing advanced e-commerce strategies.',
     youtube: 'https://youtube.com/@izunnaecommerce',
     videoCount: 52,
@@ -139,6 +148,7 @@ const experts = ref<Expert[]>([
     role: 'Backend Architect',
     skills: ['PHP', 'APIs', 'Database Design', 'Cloud Architecture', 'Security'],
     emoji: '🔧',
+    image: dimitarImage,
     bio: 'Backend specialist with expertise in building scalable, secure applications. Passionate about clean code and robust architecture that stands the test of time.',
     linkedin: 'https://linkedin.com/in/dimitar-backend',
     videoCount: 18,
@@ -151,6 +161,7 @@ const experts = ref<Expert[]>([
     role: 'FlutterFlow Expert',
     skills: ['FlutterFlow', 'Mobile Apps', 'Firebase', 'State Management', 'Custom Functions'],
     emoji: '📱',
+    image: satoshiImage,
     bio: 'FlutterFlow specialist helping clients build powerful mobile applications. Expert in extending FlutterFlow capabilities with custom code and integrations.',
     youtube: 'https://youtube.com/@essamflutterflow',
     twitter: 'https://twitter.com/essamff',

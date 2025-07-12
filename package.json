@@ -19,9 +19,11 @@
     "@supabase/supabase-js": "^2.38.4",
     "lucide-vue-next": "^0.292.0",
     "nuxt": "^3.8.0",
+    "openai": "^4.24.1",
     "pinia": "^2.1.7",
     "vue": "^3.3.8",
-    "vue-router": "^4.2.5"
+    "vue-router": "^4.2.5",
+    "yaml": "^2.3.4"
   },
   "devDependencies": {
     "@nuxt/devtools": "^1.0.8",

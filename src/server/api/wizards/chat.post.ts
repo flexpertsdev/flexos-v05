@@ -2,7 +2,7 @@ import { defineEventHandler, readBody } from 'h3'
 import { processWizardChat } from '~/server/utils/wizard-engine'
 import { validateChatRequest } from '~/server/utils/validation'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async (event: any) => {
   try {
     const body = await readBody(event)
     

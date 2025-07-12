@@ -11,7 +11,8 @@ let openaiClient: OpenAI | null = null
 
 function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
-    const apiKey = useRuntimeConfig().openaiApiKey
+    // Access environment variable directly in server context
+    const apiKey = process.env.OPENAI_API_KEY
     
     if (!apiKey) {
       throw new Error('OpenAI API key is not configured')

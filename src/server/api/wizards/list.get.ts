@@ -1,7 +1,6 @@
-import { defineEventHandler } from 'h3'
-import { getWizardList } from '~/server/utils/wizard-loader'
+import { getWizardList } from '../../utils/wizard-loader'
 
-export default defineEventHandler(async (event) => {
+export default defineEventHandler(async () => {
   try {
     const wizards = await getWizardList()
     
