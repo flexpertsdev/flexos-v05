@@ -15,18 +15,18 @@
           <div v-if="message.type === 'text'" v-html="message.content"></div>
           
           <!-- Text Input -->
-          <div v-else-if="message.type === 'text-input'" class="input-section">
+          <div v-else-if="message.type === 'text-input' && message.field" class="input-section">
             <input 
-              v-model="formData[message.field]" 
+              v-model="(formData as any)[message.field]" 
               :type="message.inputType || 'text'"
               :placeholder="message.placeholder"
               class="text-input"
-              @keypress.enter="message.field && submitTextInput(message.field)"
+              @keypress.enter="submitTextInput(message.field)"
             />
             <button 
-              @click="message.field && submitTextInput(message.field)" 
+              @click="submitTextInput(message.field)" 
               class="submit-button" 
-              :disabled="!formData[message.field]"
+              :disabled="!(formData as any)[message.field]"
             >
               Continue →
             </button>
