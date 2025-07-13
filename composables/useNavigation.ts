@@ -53,6 +53,11 @@ export function useNavigation() {
       path: '/academy', 
       label: 'Academy',
       icon: '🎓'
+    },
+    { 
+      path: '/builder', 
+      label: 'Builder',
+      icon: '🏗️'
     }
   ])
 

@@ -57,11 +57,7 @@
             {{ error }}
           </div>
 
-          <div v-if="success" class="success-message">
-            Success! Check your email to confirm your account.
-          </div>
-
-          <button type="submit" class="submit-button" :disabled="loading || success">
+          <button type="submit" class="submit-button" :disabled="loading">
             <span v-if="loading">Creating account...</span>
             <span v-else>Create account</span>
           </button>
@@ -101,19 +97,19 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-// Disable auth middleware for this page
+// Use guest middleware to redirect if already authenticated
 definePageMeta({
-  middleware: []
+  middleware: 'guest'
 })
 
 const { signUp, signInWithProvider } = useAuth()
+const router = useRouter()
 
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const loading = ref(false)
 const error = ref('')
-const success = ref(false)
 
 const handleSignUp = async () => {
   loading.value = true
@@ -133,14 +129,15 @@ const handleSignUp = async () => {
     return
   }
   
-  const { error: signUpError } = await signUp(email.value, password.value)
+  const { data, error: signUpError } = await signUp(email.value, password.value)
   
   if (signUpError) {
     error.value = signUpError
     loading.value = false
   } else {
-    success.value = true
-    loading.value = false
+    // Since email confirmation is disabled, the user is automatically logged in
+    // Redirect to dashboard or builder
+    await router.push('/dashboard')
   }
 }
 
@@ -269,15 +266,6 @@ const signUpWithGoogle = async () => {
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid rgba(248, 81, 73, 0.3);
   color: var(--error);
-  padding: 0.75rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-.success-message {
-  background: rgba(46, 160, 67, 0.1);
-  border: 1px solid rgba(46, 160, 67, 0.3);
-  color: var(--success);
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.875rem;

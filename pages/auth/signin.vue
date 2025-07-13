@@ -87,9 +87,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-// Disable auth middleware for this page
+// Use guest middleware to redirect if already authenticated
 definePageMeta({
-  middleware: []
+  middleware: 'guest'
 })
 
 const { signIn, signInWithProvider } = useAuth()

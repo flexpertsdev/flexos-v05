@@ -1,7 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  srcDir: 'src/',
-  
   devtools: { enabled: true },
   
   modules: [
@@ -32,6 +30,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     openaiApiKey: process.env.OPENAI_API_KEY,
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY,
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
@@ -49,13 +48,6 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'netlify',
-    // Ensure wizard files are copied to production
-    publicAssets: [
-      {
-        baseURL: '/wizards',
-        dir: '../wizards'
-      }
-    ]
+    preset: 'netlify'
   }
 })

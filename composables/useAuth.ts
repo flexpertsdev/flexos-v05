@@ -1,6 +1,5 @@
 import { ref, computed, watch } from 'vue'
 import type { User, Session } from '@supabase/supabase-js'
-import { supabase } from '@/utils/supabase'
 
 // Global auth state
 const currentUser = ref<User | null>(null)
@@ -13,6 +12,7 @@ let initialized = false
 
 export function useAuth() {
   const router = useRouter()
+  const supabase = useSupabase()
   
   // Initialize auth listener only once
   if (!initialized && process.client) {

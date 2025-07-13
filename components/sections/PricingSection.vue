@@ -54,7 +54,7 @@
             </li>
           </ul>
           
-          <button class="card-cta card-cta-secondary">
+          <button class="card-cta card-cta-secondary" @click="handleSignup">
             Start Building Free
           </button>
         </div>
@@ -105,7 +105,7 @@
             </li>
           </ul>
           
-          <button class="card-cta card-cta-primary">
+          <button class="card-cta card-cta-primary" @click="handleSignup">
             Upgrade to Growth
           </button>
         </div>
@@ -155,7 +155,7 @@
             </li>
           </ul>
           
-          <button class="card-cta card-cta-secondary">
+          <button class="card-cta card-cta-secondary" @click="handleSignup">
             Go Unlimited
           </button>
         </div>
@@ -165,7 +165,11 @@
 </template>
 
 <script setup lang="ts">
-// Pricing section doesn't need any reactive data or methods
+const router = useRouter()
+
+const handleSignup = () => {
+  router.push('/auth/signup')
+}
 </script>
 
 <style scoped>

@@ -10,7 +10,8 @@
     <!-- Header -->
     <AppHeader title="FlexOS">
       <template #action>
-        <button class="login-btn" @click="handleLogin">Sign In</button>
+        <button v-if="!isAuthenticated" class="login-btn" @click="handleLogin">Sign In</button>
+        <button v-else class="login-btn" @click="handleDashboard">Dashboard</button>
       </template>
     </AppHeader>
     
@@ -32,8 +33,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useNavigation } from '@/composables/useNavigation'
+import { useAuth } from '@/composables/useAuth'
 import AppHeader from '@/components/layout/AppHeader.vue'
 import BottomSheet from '@/components/layout/BottomSheet.vue'
 import HeroSection from '@/components/sections/HeroSection.vue'
@@ -46,10 +48,31 @@ import CommunityShowcase from '@/components/sections/CommunityShowcase.vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 
 const { menuOpen } = useNavigation()
+const { isAuthenticated, isLoading } = useAuth()
+const router = useRouter()
+
+// Redirect authenticated users to dashboard
+onMounted(() => {
+  // Wait for auth to load
+  const checkAuth = () => {
+    if (!isLoading.value && isAuthenticated.value) {
+      router.push('/dashboard')
+    }
+  }
+  
+  // Check immediately and after a short delay to handle async auth state
+  checkAuth()
+  if (isLoading.value) {
+    setTimeout(checkAuth, 100)
+  }
+})
 
 const handleLogin = () => {
-  // Handle login logic
-  console.log('Login clicked')
+  router.push('/auth/signin')
+}
+
+const handleDashboard = () => {
+  router.push('/dashboard')
 }
 </script>
 

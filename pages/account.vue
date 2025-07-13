@@ -1,11 +1,57 @@
 <template>
   <div class="account-page">
-    <AppHeader
-      title="Account Settings"
-      subtitle="Manage your profile and preferences"
-      :showBackButton="true"
-      backPath="/dashboard"
-    />
+    <!-- Header -->
+    <header class="account-header">
+      <div class="header-container">
+        <!-- Logo and Back -->
+        <div class="header-left">
+          <NuxtLink to="/dashboard" class="back-button">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span class="back-text">Back to Dashboard</span>
+          </NuxtLink>
+          <div class="page-info">
+            <h1 class="page-title">Account Settings</h1>
+            <p class="page-subtitle">Manage your profile and preferences</p>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="header-right">
+          <!-- User Menu -->
+          <div class="user-menu">
+            <button @click="toggleUserMenu" class="user-button" ref="userButtonRef">
+              <div class="user-avatar">
+                {{ userInitial }}
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <Transition name="dropdown">
+              <div v-if="showUserMenu" class="dropdown-menu" ref="dropdownRef">
+                <NuxtLink to="/dashboard" class="dropdown-item" @click="showUserMenu = false">
+                  <span class="dropdown-icon">📊</span>
+                  <span>Dashboard</span>
+                </NuxtLink>
+                <NuxtLink to="/builder" class="dropdown-item" @click="showUserMenu = false">
+                  <span class="dropdown-icon">🛠️</span>
+                  <span>Builder Mode</span>
+                </NuxtLink>
+                <div class="dropdown-divider"></div>
+                <button @click="handleSignOut" class="dropdown-item">
+                  <span class="dropdown-icon">🚪</span>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </div>
+      </div>
+    </header>
 
     <div class="account-container">
       <nav class="account-nav">
@@ -94,6 +140,48 @@
             </div>
           </form>
         </div>
+        
+        <!-- Subscription Tab -->
+        <div v-if="activeTab === 'subscription'" class="tab-content">
+          <h2>Subscription & Billing</h2>
+          
+          <!-- Current Plan -->
+          <div class="subscription-card">
+            <div class="plan-header">
+              <h3>Current Plan</h3>
+              <span class="plan-badge free">Free</span>
+            </div>
+            <p class="plan-description">You're on the free plan with access to basic features.</p>
+            <ul class="plan-features">
+              <li>✓ Up to 3 projects</li>
+              <li>✓ Basic components</li>
+              <li>✓ Community support</li>
+              <li>✓ Export to code</li>
+            </ul>
+            <button class="upgrade-button" disabled>
+              Upgrade Coming Soon
+            </button>
+          </div>
+          
+          <!-- Billing History -->
+          <div class="billing-section">
+            <h3>Billing History</h3>
+            <div class="empty-state">
+              <p>No billing history yet. You're on the free plan.</p>
+            </div>
+          </div>
+          
+          <!-- Payment Methods -->
+          <div class="payment-section">
+            <h3>Payment Methods</h3>
+            <div class="empty-state">
+              <p>No payment methods added yet.</p>
+              <button class="add-payment-button" disabled>
+                Add Payment Method (Coming Soon)
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- Security Tab -->
         <div v-if="activeTab === 'security'" class="tab-content">
@@ -139,6 +227,15 @@
             </div>
           </form>
 
+          <!-- Other Actions -->
+          <div class="security-actions">
+            <h3>Account Actions</h3>
+            <button @click="handleSignOut" class="signout-button">
+              <span>🚪</span>
+              Sign Out
+            </button>
+          </div>
+          
           <div class="danger-zone">
             <h3>Danger Zone</h3>
             <p>Once you delete your account, there is no going back. Please be certain.</p>
@@ -232,7 +329,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { useSupabase } from '~/composables/useSupabase'
 
 // Require authentication
 definePageMeta({
@@ -244,8 +342,12 @@ const router = useRouter()
 
 // Tab state
 const activeTab = ref('profile')
+const showUserMenu = ref(false)
+const userButtonRef = ref<HTMLElement>()
+const dropdownRef = ref<HTMLElement>()
 const tabs = [
   { id: 'profile', label: 'Profile', icon: '👤' },
+  { id: 'subscription', label: 'Subscription', icon: '💳' },
   { id: 'security', label: 'Security', icon: '🔒' },
   { id: 'preferences', label: 'Preferences', icon: '⚙️' }
 ]
@@ -281,6 +383,45 @@ const preferences = reactive({
 const preferencesLoading = ref(false)
 const preferencesSuccess = ref(false)
 
+// Get supabase instance
+const supabase = useSupabase()
+
+// Computed
+const userInitial = computed(() => {
+  if (user.value?.email) {
+    return user.value.email.charAt(0).toUpperCase()
+  }
+  return 'U'
+})
+
+// Toggle user menu
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value
+}
+
+// Handle sign out
+const handleSignOut = async () => {
+  showUserMenu.value = false
+  
+  const { error } = await supabase.auth.signOut()
+  if (!error) {
+    await router.push('/')
+  }
+}
+
+// Click outside to close dropdown
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    showUserMenu.value &&
+    userButtonRef.value &&
+    dropdownRef.value &&
+    !userButtonRef.value.contains(event.target as Node) &&
+    !dropdownRef.value.contains(event.target as Node)
+  ) {
+    showUserMenu.value = false
+  }
+}
+
 // Load user profile on mount
 onMounted(async () => {
   const { data } = await getUserProfile()
@@ -299,6 +440,13 @@ onMounted(async () => {
       preferences.marketingEmails = settings.marketingEmails ?? false
     }
   }
+  
+  document.addEventListener('click', handleClickOutside)
+})
+
+// Clean up
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 // Update profile
@@ -400,6 +548,178 @@ const deleteAccount = async () => {
   min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg-primary);
+}
+
+/* Header */
+.account-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.back-button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.back-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .back-text {
+    display: inline;
+  }
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-button:hover {
+  background: var(--bg-quaternary);
+  border-color: var(--border-secondary);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-500);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-primary);
+  margin: 0.5rem 0;
+}
+
+/* Dropdown transition */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
 }
 
 .account-container {
@@ -579,8 +899,144 @@ const deleteAccount = async () => {
   cursor: not-allowed;
 }
 
+/* Subscription Styles */
+.subscription-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.plan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.plan-header h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.plan-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.plan-badge.free {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.plan-description {
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.plan-features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem 0;
+}
+
+.plan-features li {
+  padding: 0.5rem 0;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.upgrade-button,
+.add-payment-button {
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.upgrade-button:hover:not(:disabled),
+.add-payment-button:hover:not(:disabled) {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+.upgrade-button:disabled,
+.add-payment-button:disabled {
+  background: var(--bg-quaternary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.billing-section,
+.payment-section {
+  margin-bottom: 2rem;
+}
+
+.billing-section h3,
+.payment-section h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.empty-state {
+  background: var(--bg-tertiary);
+  border: 1px dashed var(--border-primary);
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+}
+
+/* Security Actions */
+.security-actions {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.security-actions h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.signout-button {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.signout-button:hover {
+  background: var(--bg-quaternary);
+  border-color: var(--border-secondary);
+}
+
 .danger-zone {
-  margin-top: 3rem;
+  margin-top: 2rem;
   padding-top: 2rem;
   border-top: 1px solid var(--border-primary);
 }

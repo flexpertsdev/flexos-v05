@@ -1,17 +1,60 @@
 <template>
   <div class="dashboard-page">
-    <AppHeader
-      title="My Projects"
-      subtitle="Build amazing applications with FlexOS"
-      :showMenu="true"
-    >
-      <template #actions>
-        <button @click="showNewProjectModal = true" class="new-project-button">
-          <span class="plus-icon">+</span>
-          New Project
-        </button>
-      </template>
-    </AppHeader>
+    <!-- Header -->
+    <header class="dashboard-header">
+      <div class="header-container">
+        <!-- Logo and Title -->
+        <div class="header-left">
+          <NuxtLink to="/" class="logo">
+            <div class="logo-icon">F</div>
+            <span class="logo-text">FlexOS</span>
+          </NuxtLink>
+          <div class="page-info">
+            <h1 class="page-title">My Projects</h1>
+            <p class="page-subtitle">Build amazing applications with FlexOS</p>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="header-right">
+          <button @click="showNewProjectModal = true" class="new-project-button">
+            <span class="plus-icon">+</span>
+            <span class="button-text">New Project</span>
+          </button>
+          
+          <!-- User Menu -->
+          <div class="user-menu">
+            <button @click="toggleUserMenu" class="user-button" ref="userButtonRef">
+              <div class="user-avatar">
+                {{ userInitial }}
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+            </button>
+            
+            <!-- Dropdown Menu -->
+            <Transition name="dropdown">
+              <div v-if="showUserMenu" class="dropdown-menu" ref="dropdownRef">
+                <NuxtLink to="/account" class="dropdown-item" @click="showUserMenu = false">
+                  <span class="dropdown-icon">👤</span>
+                  <span>Account Settings</span>
+                </NuxtLink>
+                <NuxtLink to="/builder" class="dropdown-item" @click="showUserMenu = false">
+                  <span class="dropdown-icon">🛠️</span>
+                  <span>Builder Mode</span>
+                </NuxtLink>
+                <div class="dropdown-divider"></div>
+                <button @click="handleSignOut" class="dropdown-item">
+                  <span class="dropdown-icon">🚪</span>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </Transition>
+          </div>
+        </div>
+      </div>
+    </header>
 
     <div class="dashboard-container">
       <!-- Loading state -->
@@ -152,8 +195,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
-import { supabase } from '@/utils/supabase'
+import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import type { Database } from '@/types/database'
 
 // Require authentication
@@ -165,6 +207,7 @@ type Project = Database['public']['Tables']['projects']['Row']
 
 const { user } = useAuth()
 const router = useRouter()
+const supabase = useSupabase()
 
 // State
 const projects = ref<Project[]>([])
@@ -173,6 +216,11 @@ const showNewProjectModal = ref(false)
 const activeMenu = ref<string | null>(null)
 const createLoading = ref(false)
 const createError = ref('')
+
+// Refs for user menu
+const userButtonRef = ref<HTMLElement>()
+const dropdownRef = ref<HTMLElement>()
+const showUserMenu = ref(false)
 
 // New project form
 const newProject = reactive({
@@ -326,9 +374,51 @@ const formatDate = (date: string) => {
   return d.toLocaleDateString()
 }
 
+// Computed
+const userInitial = computed(() => {
+  if (user.value?.email) {
+    return user.value.email.charAt(0).toUpperCase()
+  }
+  return 'U'
+})
+
+// Toggle user menu
+const toggleUserMenu = () => {
+  showUserMenu.value = !showUserMenu.value
+}
+
+// Handle sign out
+const handleSignOut = async () => {
+  showUserMenu.value = false
+  
+  const { error } = await supabase.auth.signOut()
+  if (!error) {
+    await router.push('/')
+  }
+}
+
+// Click outside to close dropdown
+const handleClickOutside = (event: MouseEvent) => {
+  if (
+    showUserMenu.value &&
+    userButtonRef.value &&
+    dropdownRef.value &&
+    !userButtonRef.value.contains(event.target as Node) &&
+    !dropdownRef.value.contains(event.target as Node)
+  ) {
+    showUserMenu.value = false
+  }
+}
+
 // Load projects on mount
 onMounted(() => {
   loadProjects()
+  document.addEventListener('click', handleClickOutside)
+})
+
+// Clean up
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -339,10 +429,188 @@ onMounted(() => {
   background: var(--bg-primary);
 }
 
+/* Header */
+.dashboard-header {
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-400));
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.5rem;
+  color: white;
+}
+
+.logo-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.page-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.button-text {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .button-text {
+    display: inline;
+  }
+}
+
+/* User Menu */
+.user-menu {
+  position: relative;
+}
+
+.user-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-button:hover {
+  background: var(--bg-quaternary);
+  border-color: var(--border-secondary);
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-500);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  box-shadow: var(--shadow-lg);
+  min-width: 200px;
+  overflow: hidden;
+  z-index: 200;
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-tertiary);
+}
+
+.dropdown-icon {
+  font-size: 1rem;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-primary);
+  margin: 0.5rem 0;
+}
+
+/* Dropdown transition */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: all 0.2s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
 .dashboard-container {
   max-width: 1400px;
   margin: 0 auto;
   padding: 2rem 1rem;
+  padding-top: 1rem;
 }
 
 .new-project-button {
@@ -760,6 +1028,34 @@ onMounted(() => {
 
 /* Mobile styles */
 @media (max-width: 768px) {
+  .header-container {
+    padding: 1rem;
+  }
+  
+  .header-left {
+    gap: 1rem;
+  }
+  
+  .logo-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.25rem;
+  }
+  
+  .logo-text {
+    font-size: 1.25rem;
+  }
+  
+  .page-info {
+    display: none;
+  }
+  
+  @media (min-width: 1024px) {
+    .page-info {
+      display: flex;
+    }
+  }
+  
   .projects-grid {
     grid-template-columns: 1fr;
   }

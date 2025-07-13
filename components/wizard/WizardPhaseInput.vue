@@ -10,7 +10,7 @@
         class="text-input"
         ref="inputRef"
       />
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -24,7 +24,7 @@
         class="textarea-input"
         ref="inputRef"
       ></textarea>
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -57,7 +57,7 @@
         class="email-input"
         ref="inputRef"
       />
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -73,7 +73,7 @@
         class="number-input"
         ref="inputRef"
       />
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -111,7 +111,7 @@
           </span>
         </div>
       </label>
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -137,7 +137,7 @@
           </span>
         </div>
       </label>
-      <button v-if="!autoSubmit" @click="submit" :disabled="!isValid" class="submit-button">
+      <button v-if="!autoSubmit" @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -154,7 +154,7 @@
           {{ option.label }}
         </option>
       </select>
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -176,7 +176,7 @@
           </div>
         </div>
       </div>
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -200,7 +200,7 @@
           <div class="style-label">{{ option.label }}</div>
         </div>
       </div>
-      <button @click="submit" :disabled="!isValid" class="submit-button">
+      <button @click="submit" class="submit-button">
         Continue →
       </button>
     </div>
@@ -232,9 +232,14 @@ const emit = defineEmits<{
 }>()
 
 // Local state
-const localValue = ref<any>(props.value)
+const localValue = ref<any>(
+  props.phase.inputType === 'checkboxes' 
+    ? (Array.isArray(props.value) ? props.value : [])
+    : props.value
+)
 const validationError = ref('')
 const inputRef = ref<HTMLElement>()
+const hasAttemptedSubmit = ref(false)
 
 // Computed
 const isValid = computed(() => {
@@ -246,13 +251,20 @@ const isValid = computed(() => {
 
 // Watch for external value changes
 watch(() => props.value, (newValue) => {
-  localValue.value = newValue
+  if (props.phase.inputType === 'checkboxes') {
+    localValue.value = Array.isArray(newValue) ? newValue : []
+  } else {
+    localValue.value = newValue
+  }
 })
 
 // Watch for local value changes
 watch(localValue, (newValue) => {
   emit('update', newValue)
-  validateInput(newValue)
+  // Only validate if user has attempted to submit
+  if (hasAttemptedSubmit.value) {
+    validateInput(newValue)
+  }
 })
 
 // Focus input on mount
@@ -265,7 +277,17 @@ onMounted(async () => {
 
 // Methods
 function submit() {
-  if (!isValid.value) return
+  hasAttemptedSubmit.value = true
+  
+  // Validate before submitting
+  const validation = validateInput(localValue.value)
+  if (!validation.valid) {
+    return
+  }
+  
+  // Clear validation state for next phase
+  hasAttemptedSubmit.value = false
+  validationError.value = ''
   
   emit('submit', localValue.value)
 }
