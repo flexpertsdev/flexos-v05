@@ -519,7 +519,7 @@ function getDefaultWizards(): WizardConfig[] {
       name: 'Become a Flexfluencer',
       description: 'Join our influencer program and earn money by promoting apps',
       icon: '💰',
-      category: 'business' as const,
+      category: 'project' as const,
       version: '1.0.0',
       phases: [
         {
