@@ -1,0 +1,451 @@
+id: design-system-generator
+name: Design System Generator
+description: Create a complete design system with tokens, components, and documentation
+icon: 🎨
+category: design
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 20
+
+phases:
+  # Phase 1: Brand Foundation
+  - id: brand-name
+    name: Brand Name
+    type: question
+    prompt: |
+      Let's create a professional design system for your brand! 🎨
+      
+      A design system ensures consistency across your entire application.
+      
+      What's your brand or project name?
+    inputType: text
+    validation:
+      required: true
+      minLength: 2
+      message: Please enter your brand name
+
+  - id: brand-personality
+    name: Brand Personality
+    type: selection
+    prompt: |
+      How would you describe {{answers.brand-name}}'s personality?
+      
+      Select all that apply:
+    inputType: checkboxes
+    options:
+      - id: professional
+        label: Professional & trustworthy
+        value: professional
+        icon: 💼
+      - id: innovative
+        label: Innovative & cutting-edge
+        value: innovative
+        icon: 🚀
+      - id: friendly
+        label: Friendly & approachable
+        value: friendly
+        icon: 😊
+      - id: playful
+        label: Playful & fun
+        value: playful
+        icon: 🎉
+      - id: elegant
+        label: Elegant & sophisticated
+        value: elegant
+        icon: 👑
+      - id: bold
+        label: Bold & confident
+        value: bold
+        icon: 💪
+      - id: minimal
+        label: Minimal & clean
+        value: minimal
+        icon: ⚪
+      - id: technical
+        label: Technical & precise
+        value: technical
+        icon: 🔧
+
+  # Phase 2: Color System
+  - id: primary-color
+    name: Primary Color
+    type: question
+    prompt: |
+      What's your primary brand color?
+      
+      Enter a hex code (e.g., #0066CC) or describe it (e.g., "deep blue")
+    inputType: text
+    validation:
+      required: true
+      pattern: '^#[0-9A-Fa-f]{6}$|^.{3,}$'
+      message: Enter a hex code or color description
+
+  - id: color-scheme
+    name: Color Scheme
+    type: selection
+    prompt: |
+      What type of color scheme would you like?
+    inputType: radio
+    options:
+      - id: monochromatic
+        label: Monochromatic (shades of primary color)
+        value: monochromatic
+        icon: 🎨
+      - id: complementary
+        label: Complementary (opposite colors)
+        value: complementary
+        icon: 🔄
+      - id: analogous
+        label: Analogous (neighboring colors)
+        value: analogous
+        icon: 🌈
+      - id: triadic
+        label: Triadic (three evenly spaced)
+        value: triadic
+        icon: 🔺
+      - id: custom
+        label: Custom palette
+        value: custom
+        icon: 🎯
+
+  - id: color-accessibility
+    name: Color Accessibility
+    type: selection
+    prompt: |
+      How important is color accessibility (contrast ratios)?
+    inputType: radio
+    options:
+      - id: wcag-aaa
+        label: WCAG AAA (highest, 7:1 contrast)
+        value: wcag-aaa
+        icon: ⭐
+      - id: wcag-aa
+        label: WCAG AA (standard, 4.5:1 contrast)
+        value: wcag-aa
+        icon: ✅
+      - id: wcag-a
+        label: WCAG A (minimum compliance)
+        value: wcag-a
+        icon: ✓
+      - id: artistic
+        label: Artistic freedom (accessibility secondary)
+        value: artistic
+        icon: 🎨
+
+  # Phase 3: Typography
+  - id: font-style
+    name: Typography Style
+    type: selection
+    prompt: |
+      What typography style fits your brand?
+    inputType: radio
+    options:
+      - id: modern-sans
+        label: Modern Sans-serif (clean, digital)
+        value: modern-sans
+        icon: 🔤
+        description: "Inter, Helvetica, Arial"
+      - id: geometric-sans
+        label: Geometric Sans-serif (precise, technical)
+        value: geometric-sans
+        icon: 📐
+        description: "Futura, Proxima Nova"
+      - id: humanist-sans
+        label: Humanist Sans-serif (friendly, readable)
+        value: humanist-sans
+        icon: 👋
+        description: "Open Sans, Lato"
+      - id: traditional-serif
+        label: Traditional Serif (elegant, editorial)
+        value: traditional-serif
+        icon: 📰
+        description: "Georgia, Times"
+      - id: modern-serif
+        label: Modern Serif (sophisticated, luxury)
+        value: modern-serif
+        icon: 💎
+        description: "Playfair, Didot"
+      - id: mixed
+        label: Mixed (serif headers, sans body)
+        value: mixed
+        icon: 🔀
+
+  - id: font-scale
+    name: Typography Scale
+    type: selection
+    prompt: |
+      Choose your typography scale (size progression):
+    inputType: radio
+    options:
+      - id: minor-third
+        label: Minor Third (1.2) - Subtle, refined
+        value: 1.2
+        icon: 📏
+      - id: major-third
+        label: Major Third (1.25) - Classic, balanced
+        value: 1.25
+        icon: ⚖️
+      - id: perfect-fourth
+        label: Perfect Fourth (1.333) - Clear hierarchy
+        value: 1.333
+        icon: 📊
+      - id: augmented-fourth
+        label: Augmented Fourth (1.414) - Strong contrast
+        value: 1.414
+        icon: 📈
+      - id: perfect-fifth
+        label: Perfect Fifth (1.5) - Bold, dramatic
+        value: 1.5
+        icon: 🎯
+
+  # Phase 4: Spacing & Layout
+  - id: spacing-unit
+    name: Spacing System
+    type: selection
+    prompt: |
+      What base spacing unit should your design system use?
+    inputType: radio
+    options:
+      - id: base-4
+        label: 4px base (0, 4, 8, 12, 16, 24, 32...)
+        value: 4
+        icon: 4️⃣
+      - id: base-8
+        label: 8px base (0, 8, 16, 24, 32, 48...)
+        value: 8
+        icon: 8️⃣
+      - id: base-5
+        label: 5px base (0, 5, 10, 15, 20, 30...)
+        value: 5
+        icon: 5️⃣
+      - id: rem-based
+        label: REM based (0.25, 0.5, 1, 1.5, 2...)
+        value: rem
+        icon: 📐
+
+  - id: layout-approach
+    name: Layout Approach
+    type: selection
+    prompt: |
+      What's your preferred layout approach?
+    inputType: radio
+    options:
+      - id: grid-12
+        label: 12-column grid (traditional)
+        value: grid-12
+        icon: 📊
+      - id: grid-16
+        label: 16-column grid (more flexibility)
+        value: grid-16
+        icon: 🎯
+      - id: css-grid
+        label: CSS Grid (modern, flexible)
+        value: css-grid
+        icon: 🔲
+      - id: flexbox
+        label: Flexbox-based (component-focused)
+        value: flexbox
+        icon: 📦
+
+  # Phase 5: Component Style
+  - id: component-style
+    name: Component Style
+    type: selection
+    prompt: |
+      What visual style should your components have?
+    inputType: checkboxes
+    options:
+      - id: flat
+        label: Flat design (no shadows/gradients)
+        value: flat
+        icon: ⬜
+      - id: shadows
+        label: Subtle shadows (depth)
+        value: shadows
+        icon: 🌫️
+      - id: rounded
+        label: Rounded corners
+        value: rounded
+        icon: ⭕
+      - id: sharp
+        label: Sharp corners
+        value: sharp
+        icon: ⬛
+      - id: borders
+        label: Visible borders
+        value: borders
+        icon: 🔲
+      - id: gradients
+        label: Gradient accents
+        value: gradients
+        icon: 🌈
+      - id: glassmorphism
+        label: Glassmorphism (translucent)
+        value: glassmorphism
+        icon: 🪟
+      - id: neumorphism
+        label: Neumorphism (soft UI)
+        value: neumorphism
+        icon: 🔘
+
+  # Phase 6: Animation & Motion
+  - id: animation-preference
+    name: Animation Preference
+    type: selection
+    prompt: |
+      How much animation should your design system include?
+    inputType: radio
+    options:
+      - id: none
+        label: None (static only)
+        value: none
+        icon: ⏹️
+      - id: minimal
+        label: Minimal (subtle transitions)
+        value: minimal
+        icon: ➡️
+      - id: moderate
+        label: Moderate (smooth interactions)
+        value: moderate
+        icon: 🔄
+      - id: rich
+        label: Rich (delightful animations)
+        value: rich
+        icon: ✨
+      - id: playful
+        label: Playful (bouncy, energetic)
+        value: playful
+        icon: 🎪
+
+  # Phase 7: Dark Mode
+  - id: dark-mode
+    name: Dark Mode Support
+    type: selection
+    prompt: |
+      Should your design system support dark mode?
+    inputType: radio
+    options:
+      - id: yes-auto
+        label: Yes, with auto-switching
+        value: yes-auto
+        icon: 🌓
+      - id: yes-manual
+        label: Yes, manual toggle only
+        value: yes-manual
+        icon: 🌙
+      - id: dark-first
+        label: Dark mode as default
+        value: dark-first
+        icon: 🌑
+      - id: no
+        label: No, light mode only
+        value: no
+        icon: ☀️
+
+  # Phase 8: Documentation
+  - id: documentation-level
+    name: Documentation Level
+    type: selection
+    prompt: |
+      How comprehensive should the documentation be?
+    inputType: radio
+    options:
+      - id: basic
+        label: Basic (component examples)
+        value: basic
+        icon: 📄
+      - id: standard
+        label: Standard (usage guidelines)
+        value: standard
+        icon: 📚
+      - id: comprehensive
+        label: Comprehensive (full style guide)
+        value: comprehensive
+        icon: 📖
+      - id: enterprise
+        label: Enterprise (brand guidelines, governance)
+        value: enterprise
+        icon: 🏢
+
+  # Phase 9: Review
+  - id: complete
+    name: Design System Ready
+    type: review
+    prompt: |
+      🎨 **{{answers.brand-name}} Design System Ready!**
+      
+      **Brand Personality:** {{answers.brand-personality}}
+      **Primary Color:** {{answers.primary-color}}
+      **Typography:** {{answers.font-style}}
+      **Spacing Base:** {{answers.spacing-unit}}px
+      
+      **Visual Style:**
+      {{#each answers.component-style}}
+      • {{this}}
+      {{/each}}
+      
+      **Features:**
+      • Color scheme: {{answers.color-scheme}}
+      • Accessibility: {{answers.color-accessibility}}
+      • Animations: {{answers.animation-preference}}
+      • Dark mode: {{answers.dark-mode}}
+      
+      **I'll generate:**
+      1. Complete design tokens (colors, typography, spacing)
+      2. Component library with 30+ components
+      3. Interactive documentation
+      4. Figma/Sketch resources
+      5. Implementation guide
+      
+      Ready to create your design system? 🚀
+    inputType: text
+
+outputs:
+  - id: design-tokens
+    name: Design Tokens
+    type: code
+    files:
+      - path: "design-system/tokens/colors.json"
+        generator: generateColorTokens
+      - path: "design-system/tokens/typography.json"
+        generator: generateTypographyTokens
+      - path: "design-system/tokens/spacing.json"
+        generator: generateSpacingTokens
+      - path: "design-system/tokens/shadows.json"
+        generator: generateShadowTokens
+      
+  - id: css-framework
+    name: CSS Framework
+    type: code
+    files:
+      - path: "design-system/css/variables.css"
+        generator: generateCSSVariables
+      - path: "design-system/css/utilities.css"
+        generator: generateUtilities
+      - path: "design-system/css/components.css"
+        generator: generateComponentStyles
+        
+  - id: vue-components
+    name: Vue Components
+    type: code
+    files:
+      - path: "design-system/components/index.ts"
+        generator: generateComponentIndex
+      - path: "design-system/components/Button.vue"
+        generator: generateButtonComponent
+      - path: "design-system/components/Card.vue"
+        generator: generateCardComponent
+        
+  - id: documentation
+    name: Documentation
+    type: documentation
+    files:
+      - path: "design-system/README.md"
+        generator: generateSystemDocs
+      - path: "design-system/BRAND-GUIDELINES.md"
+        generator: generateBrandGuidelines
+      - path: "design-system/COMPONENTS.md"
+        generator: generateComponentDocs

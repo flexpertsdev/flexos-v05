@@ -1,5 +1,13 @@
 import { ref, computed } from 'vue'
 
+// Types
+interface NavigationItem {
+  path: string
+  label: string
+  icon: string
+  devOnly?: boolean
+}
+
 // Global state
 const menuOpen = ref(false)
 const activeSection = ref<string | null>(null)
@@ -35,7 +43,7 @@ export function useNavigation() {
   }
 
   // Navigation items
-  const navigationItems = computed(() => [
+  const navigationItems = computed<NavigationItem[]>(() => [
     { 
       path: '/', 
       label: 'Home',

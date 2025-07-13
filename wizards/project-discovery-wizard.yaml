@@ -1,0 +1,438 @@
+id: project-discovery
+name: Project Discovery Wizard
+description: Transform your idea into a complete project plan through friendly conversation
+icon: 🚀
+category: project
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 15
+
+phases:
+  # Phase 1: Introduction & Rapport
+  - id: introduction
+    name: Introduction
+    type: question
+    prompt: |
+      Hi there! I'm here to help bring your idea to life. 🌟
+      
+      First, I'd love to know your name - what should I call you?
+    inputType: text
+    validation:
+      required: true
+      minLength: 1
+      message: Please share your name so we can get started
+
+  - id: excitement
+    name: What Excites You
+    type: question
+    prompt: |
+      Great to meet you, {{answers.introduction}}! I'm excited to learn about your project.
+      
+      What's got you excited about starting this? What made you decide "now is the time"?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 20
+      message: Please share what's motivating you to start this project
+
+  # Phase 2: Vision & Problem
+  - id: vision
+    name: Your Vision
+    type: question
+    prompt: |
+      I love your enthusiasm! Let's dream big for a moment...
+      
+      Imagine it's a year from now and your project is a huge success. 🎉
+      
+      What does that look like? How has it changed things?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Paint me a picture of your success!
+
+  - id: problem
+    name: The Problem
+    type: question
+    prompt: |
+      That's an inspiring vision! Now let's get practical.
+      
+      What problem does this solve that really bugs you or others? What's broken or missing in the world that your project will fix?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Help me understand the problem you're solving
+
+  - id: frustration
+    name: Real Experience
+    type: question
+    prompt: |
+      I can see why that's important to solve.
+      
+      Can you tell me about a specific time when this problem really frustrated you or someone you know? Walk me through what happened.
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 40
+      message: Share a real story - it helps me understand better
+
+  # Phase 3: User Discovery
+  - id: target-user
+    name: Target User
+    type: question
+    prompt: |
+      Thanks for sharing that story - it really helps me understand the need.
+      
+      Who do you picture using this? Maybe someone specific you know? Tell me about them.
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Describe your ideal user
+
+  - id: user-day
+    name: User's Day
+    type: question
+    prompt: |
+      I'm getting a good picture of your users!
+      
+      What's a typical day like for them? When in their day would they reach for your solution?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 40
+      message: Help me understand when and how they'd use this
+
+  - id: current-solution
+    name: Current Solutions
+    type: question
+    prompt: |
+      That makes sense - I can see where this fits in their life.
+      
+      What are they doing right now instead of using your solution? How's that working out for them?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: What's their current workaround or alternative?
+
+  # Phase 4: Feature Exploration
+  - id: first-experience
+    name: First Experience
+    type: question
+    prompt: |
+      Let's make this real! 🎬
+      
+      Someone just discovered your solution. Walk me through what happens - what do they see first? What catches their attention?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 40
+      message: Describe their first impression and experience
+
+  - id: first-action
+    name: First Action
+    type: question
+    prompt: |
+      Great first impression!
+      
+      Now they're interested - what's the very FIRST thing they'd want to do? What action would they take?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: What's their first step?
+
+  - id: user-journey
+    name: User Journey
+    type: question
+    prompt: |
+      Perfect! They've taken that first step.
+      
+      Keep walking me through their journey - what happens next? How do they get value from your solution?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 50
+      message: Continue the user journey...
+
+  - id: key-features
+    name: Must-Have Features
+    type: selection
+    prompt: |
+      Based on everything you've told me, which of these features feel essential for your project?
+      
+      Select all that feel like "must-haves" for version 1:
+    inputType: checkboxes
+    options:
+      - id: user-accounts
+        label: User accounts & profiles
+        value: user-accounts
+        icon: 👤
+      - id: social
+        label: Social features (share, collaborate, follow)
+        value: social
+        icon: 👥
+      - id: notifications
+        label: Notifications & alerts
+        value: notifications
+        icon: 🔔
+      - id: search
+        label: Search & filtering
+        value: search
+        icon: 🔍
+      - id: analytics
+        label: Analytics & insights
+        value: analytics
+        icon: 📊
+      - id: payments
+        label: Payments & subscriptions
+        value: payments
+        icon: 💳
+      - id: offline
+        label: Works offline
+        value: offline
+        icon: 📱
+      - id: realtime
+        label: Real-time updates
+        value: realtime
+        icon: ⚡
+      - id: ai
+        label: AI/Smart features
+        value: ai
+        icon: 🤖
+      - id: integration
+        label: Integrates with other tools
+        value: integration
+        icon: 🔗
+
+  - id: custom-features
+    name: Unique Features
+    type: question
+    prompt: |
+      Those are great foundation features!
+      
+      What unique or special features would make your solution stand out? What would make someone say "Wow, I need this!"?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: What makes your solution special?
+
+  # Phase 5: Design & Feel
+  - id: design-vibe
+    name: Design Vibe
+    type: question
+    prompt: |
+      Let's talk about how this should feel. 🎨
+      
+      What's the vibe you're going for? Should it feel playful, professional, calming, energetic, minimal, rich...? 
+      
+      Describe the personality of your project.
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 20
+      message: Describe the feeling and personality
+
+  - id: design-inspiration
+    name: Design Inspiration
+    type: question
+    prompt: |
+      I'm getting a feel for the vibe!
+      
+      What apps or websites do you love using? What do you like about them? (These don't have to be similar to your project)
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Share some apps or sites you admire
+
+  # Phase 6: Technical Preferences
+  - id: platform
+    name: Platform Choice
+    type: selection
+    prompt: |
+      Now for some practical decisions...
+      
+      Do you picture people using this more on phones, computers, or both?
+    inputType: radio
+    options:
+      - id: mobile
+        label: Primarily on phones/tablets
+        value: mobile
+        icon: 📱
+      - id: desktop
+        label: Primarily on computers
+        value: desktop
+        icon: 💻
+      - id: both
+        label: Both equally important
+        value: both
+        icon: 🖥️
+      - id: mobile-first
+        label: Mobile first, desktop later
+        value: mobile-first
+        icon: 📲
+
+  - id: user-access
+    name: User Access
+    type: selection
+    prompt: |
+      How should people access your solution?
+    inputType: radio
+    options:
+      - id: anyone
+        label: Anyone can jump right in (no signup)
+        value: anyone
+        icon: 🌐
+      - id: optional
+        label: Optional accounts for extra features
+        value: optional
+        icon: 🔓
+      - id: required
+        label: Everyone needs an account
+        value: required
+        icon: 🔐
+      - id: invite
+        label: Invite-only or approval required
+        value: invite
+        icon: 🎟️
+
+  # Phase 7: Business Model
+  - id: business-model
+    name: Business Model
+    type: selection
+    prompt: |
+      Let's think about sustainability...
+      
+      How might this project sustain itself?
+    inputType: radio
+    options:
+      - id: free
+        label: Completely free (passion project)
+        value: free
+        icon: 💝
+      - id: freemium
+        label: Free with premium features
+        value: freemium
+        icon: ⭐
+      - id: subscription
+        label: Monthly/yearly subscription
+        value: subscription
+        icon: 🔄
+      - id: one-time
+        label: One-time purchase
+        value: one-time
+        icon: 🛒
+      - id: ads
+        label: Free with ads
+        value: ads
+        icon: 📢
+      - id: marketplace
+        label: Transaction fees (marketplace)
+        value: marketplace
+        icon: 💰
+
+  # Phase 8: Priorities
+  - id: mvp-priority
+    name: MVP Priority
+    type: question
+    prompt: |
+      If you could only build ONE part first to test if this idea works, what would it be?
+      
+      What's the absolute core that would prove the concept?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: What's the minimum viable version?
+
+  - id: future-features
+    name: Future Features
+    type: question
+    prompt: |
+      Smart thinking - start focused!
+      
+      What exciting features can wait until version 2? What would you add once the core is working well?
+    inputType: textarea
+    validation:
+      required: false
+      minLength: 20
+      message: Dream about the future versions
+
+  - id: project-name
+    name: Project Name
+    type: question
+    prompt: |
+      We're almost done! This has been really helpful.
+      
+      What would you like to call your project? (You can always change this later)
+    inputType: text
+    validation:
+      required: true
+      minLength: 2
+      maxLength: 50
+      pattern: '^[a-zA-Z0-9][a-zA-Z0-9-_ ]*$'
+      message: Please enter a project name (letters, numbers, spaces, hyphens, and underscores)
+
+  - id: final-thoughts
+    name: Final Thoughts
+    type: question
+    prompt: |
+      {{answers.introduction}}, this has been fantastic! Your {{answers.project-name}} project sounds amazing.
+      
+      Is there anything else bouncing around in your head that we haven't talked about? Any worries, dreams, or ideas?
+    inputType: textarea
+    validation:
+      required: false
+      minLength: 10
+
+  - id: complete
+    name: Discovery Complete
+    type: review
+    prompt: |
+      🎉 Congratulations {{answers.introduction}}!
+      
+      We've successfully mapped out your **{{answers.project-name}}** project.
+      
+      **What I learned:**
+      - You're solving: {{answers.problem}}
+      - For users like: {{answers.target-user}}
+      - With a {{answers.design-vibe}} design approach
+      - On {{answers.platform}} platform(s)
+      - Using a {{answers.business-model}} model
+      
+      **Next Steps:**
+      1. I'll generate a complete project specification document
+      2. Create a technical implementation plan
+      3. Design initial wireframes and user flows
+      4. Set up your development environment
+      
+      Ready to bring **{{answers.project-name}}** to life? 🚀
+    inputType: text
+
+outputs:
+  - id: project-spec
+    name: Project Specification
+    type: documentation
+    files:
+      - path: "{{answers.project-name}}/README.md"
+        generator: generateProjectReadme
+      - path: "{{answers.project-name}}/docs/project-specification.md"
+        generator: generateProjectSpec
+      - path: "{{answers.project-name}}/docs/user-stories.md"
+        generator: generateUserStories
+      - path: "{{answers.project-name}}/docs/technical-plan.md"
+        generator: generateTechnicalPlan
+  
+  - id: project-config
+    name: Project Configuration
+    type: config
+    files:
+      - path: "{{answers.project-name}}/project.config.yaml"
+        generator: generateProjectConfig

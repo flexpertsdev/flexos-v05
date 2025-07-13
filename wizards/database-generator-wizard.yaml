@@ -1,0 +1,498 @@
+id: database-generator
+name: Database Generator Wizard
+description: Design and generate a complete database schema with relationships and optimization
+icon: 🗄️
+category: feature
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 15
+
+phases:
+  # Phase 1: Understanding Your Data
+  - id: app-purpose
+    name: Application Purpose
+    type: selection
+    prompt: |
+      Let's design a database that perfectly fits your application! 🗄️
+      
+      I'll help you create a professional database structure with proper relationships and performance optimization.
+      
+      What's the main purpose of your application?
+    inputType: radio
+    options:
+      - id: ecommerce
+        label: E-commerce (products, orders, customers)
+        value: ecommerce
+        icon: 🛒
+      - id: social
+        label: Social platform (users, posts, connections)
+        value: social
+        icon: 👥
+      - id: saas
+        label: SaaS/Business tool (workspaces, projects, tasks)
+        value: saas
+        icon: 💼
+      - id: content
+        label: Content management (articles, media, categories)
+        value: content
+        icon: 📝
+      - id: educational
+        label: Educational (courses, students, progress)
+        value: educational
+        icon: 🎓
+      - id: other
+        label: Other (I'll describe it)
+        value: other
+        icon: 🔧
+
+  - id: custom-description
+    name: Custom Description
+    type: question
+    prompt: |
+      Tell me more about your application. What's its main purpose and what kind of data will it manage?
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Please describe your application's purpose
+    dependencies: ["app-purpose"]
+    branching:
+      conditions:
+        - if:
+            phase: app-purpose
+            operator: equals
+            value: other
+          then: custom-description
+
+  - id: existing-docs
+    name: Existing Documentation
+    type: selection
+    prompt: |
+      Do you have any existing documentation that can help me understand your data needs?
+    inputType: checkboxes
+    options:
+      - id: requirements
+        label: User stories or requirements document
+        value: requirements
+        icon: 📋
+      - id: mockups
+        label: UI mockups showing data
+        value: mockups
+        icon: 🎨
+      - id: spreadsheets
+        label: Spreadsheets with sample data
+        value: spreadsheets
+        icon: 📊
+      - id: api-docs
+        label: API documentation
+        value: api-docs
+        icon: 🔌
+      - id: none
+        label: No, let's start from scratch
+        value: none
+        icon: 🆕
+
+  # Phase 2: Core Entities
+  - id: core-entities
+    name: Core Entities
+    type: selection
+    prompt: |
+      Based on your {{answers.app-purpose}} application, here are the main entities I think you'll need.
+      
+      Select all that apply, and I'll help you add any missing ones:
+    inputType: checkboxes
+    options:
+      - id: users
+        label: Users/Accounts (authentication, profiles)
+        value: users
+        icon: 👤
+      - id: products
+        label: Products/Items (things being sold/managed)
+        value: products
+        icon: 📦
+      - id: orders
+        label: Orders/Transactions
+        value: orders
+        icon: 🛒
+      - id: posts
+        label: Posts/Content (user-generated content)
+        value: posts
+        icon: 📝
+      - id: categories
+        label: Categories/Tags (organization)
+        value: categories
+        icon: 🏷️
+      - id: media
+        label: Media/Files (images, documents)
+        value: media
+        icon: 🖼️
+      - id: messages
+        label: Messages/Comments (communication)
+        value: messages
+        icon: 💬
+      - id: payments
+        label: Payments/Billing
+        value: payments
+        icon: 💳
+      - id: analytics
+        label: Analytics/Events (tracking)
+        value: analytics
+        icon: 📊
+
+  - id: additional-entities
+    name: Additional Entities
+    type: question
+    prompt: |
+      What other main entities do you need to track? 
+      
+      List them one per line (e.g., "Appointments", "Inventory", "Reviews")
+    inputType: textarea
+    validation:
+      required: false
+      minLength: 0
+
+  # Phase 3: Entity Details (Dynamic based on selection)
+  - id: user-fields
+    name: User Fields
+    type: selection
+    prompt: |
+      Let's detail the Users entity. What information do you need to store about users?
+      
+      (I'll automatically include: ID, created_at, updated_at)
+    inputType: checkboxes
+    options:
+      - id: email
+        label: Email address (for login)
+        value: email
+        icon: 📧
+      - id: username
+        label: Username (unique display name)
+        value: username
+        icon: 👤
+      - id: name
+        label: Full name (first/last or single)
+        value: name
+        icon: 📝
+      - id: avatar
+        label: Profile picture/avatar
+        value: avatar
+        icon: 🖼️
+      - id: phone
+        label: Phone number
+        value: phone
+        icon: 📱
+      - id: address
+        label: Physical address
+        value: address
+        icon: 🏠
+      - id: bio
+        label: Bio/description
+        value: bio
+        icon: 📄
+      - id: preferences
+        label: Settings/preferences (JSON)
+        value: preferences
+        icon: ⚙️
+      - id: verified
+        label: Email/account verification status
+        value: verified
+        icon: ✅
+      - id: role
+        label: Role/permissions
+        value: role
+        icon: 🔐
+    dependencies: ["core-entities"]
+    branching:
+      conditions:
+        - if:
+            phase: core-entities
+            operator: contains
+            value: users
+          then: user-fields
+
+  # Phase 4: Relationships
+  - id: relationships
+    name: Entity Relationships
+    type: question
+    prompt: |
+      Now let's connect your entities. I've identified some likely relationships:
+      
+      {{#if answers.core-entities contains 'users' and 'orders'}}
+      • Users → Orders (one user has many orders)
+      {{/if}}
+      {{#if answers.core-entities contains 'products' and 'categories'}}
+      • Categories → Products (categories contain products)
+      {{/if}}
+      {{#if answers.core-entities contains 'users' and 'posts'}}
+      • Users → Posts (users create posts)
+      {{/if}}
+      
+      Are there any other important relationships I should know about?
+      
+      Examples:
+      • "Products can belong to multiple categories"
+      • "Users can follow other users"
+      • "Orders contain multiple products"
+    inputType: textarea
+    validation:
+      required: false
+
+  # Phase 5: Performance
+  - id: usage-patterns
+    name: Usage Patterns
+    type: selection
+    prompt: |
+      How will your app primarily use this data? This helps me optimize the database design.
+    inputType: radio
+    options:
+      - id: read-heavy
+        label: Lots of reads, few writes (content site, catalog)
+        value: read-heavy
+        icon: 📖
+      - id: balanced
+        label: Balanced reads and writes (typical app)
+        value: balanced
+        icon: ⚖️
+      - id: write-heavy
+        label: Heavy writes (analytics, logs, real-time)
+        value: write-heavy
+        icon: ✍️
+      - id: complex
+        label: Complex queries (reporting, search, filters)
+        value: complex
+        icon: 🔍
+      - id: realtime
+        label: Real-time updates (chat, collaboration)
+        value: realtime
+        icon: ⚡
+
+  - id: expected-scale
+    name: Expected Scale
+    type: selection
+    prompt: |
+      What scale do you expect to reach? This helps me design for growth.
+    inputType: radio
+    options:
+      - id: small
+        label: Small (< 1,000 users)
+        value: small
+        icon: 🌱
+      - id: medium
+        label: Medium (1K - 100K users)
+        value: medium
+        icon: 🌿
+      - id: large
+        label: Large (100K - 1M users)
+        value: large
+        icon: 🌳
+      - id: massive
+        label: Massive (1M+ users)
+        value: massive
+        icon: 🌲
+      - id: unsure
+        label: Not sure yet (design for growth)
+        value: unsure
+        icon: 🤔
+
+  # Phase 6: Database Choice
+  - id: database-type
+    name: Database Selection
+    type: selection
+    prompt: |
+      Based on your needs, I recommend **PostgreSQL** because:
+      
+      {{#if answers.relationships}}
+      ✅ Excellent support for complex relationships
+      {{/if}}
+      {{#if answers.usage-patterns == 'complex'}}
+      ✅ Powerful query capabilities and indexing
+      {{/if}}
+      ✅ ACID compliance for data integrity
+      ✅ JSON support for flexible fields
+      ✅ Great performance and scalability
+      
+      Would you like to:
+    inputType: radio
+    options:
+      - id: postgres
+        label: Use PostgreSQL (recommended)
+        value: postgres
+        icon: 🐘
+      - id: mysql
+        label: Use MySQL instead
+        value: mysql
+        icon: 🐬
+      - id: mongodb
+        label: Use MongoDB (NoSQL)
+        value: mongodb
+        icon: 🍃
+      - id: supabase
+        label: Use Supabase (PostgreSQL + extras)
+        value: supabase
+        icon: ⚡
+      - id: explain
+        label: Tell me more about the options
+        value: explain
+        icon: ❓
+
+  # Phase 7: Advanced Features
+  - id: advanced-features
+    name: Advanced Features
+    type: selection
+    prompt: |
+      Would you like any of these advanced database features?
+    inputType: checkboxes
+    options:
+      - id: soft-delete
+        label: Soft deletes (archive instead of permanent delete)
+        value: soft-delete
+        icon: 🗑️
+      - id: audit
+        label: Audit trail (track all changes)
+        value: audit
+        icon: 📝
+      - id: rls
+        label: Row-level security (data isolation)
+        value: rls
+        icon: 🔒
+      - id: search
+        label: Full-text search capabilities
+        value: search
+        icon: 🔍
+      - id: cache
+        label: Caching layer (Redis)
+        value: cache
+        icon: ⚡
+      - id: backup
+        label: Automatic backup strategy
+        value: backup
+        icon: 💾
+      - id: multi-tenant
+        label: Multi-tenancy support
+        value: multi-tenant
+        icon: 🏢
+
+  # Phase 8: Output Preferences
+  - id: output-format
+    name: Output Format
+    type: selection
+    prompt: |
+      How would you like to receive your database design?
+    inputType: checkboxes
+    options:
+      - id: sql
+        label: Raw SQL schema files
+        value: sql
+        icon: 📄
+      - id: migrations
+        label: Migration files (version controlled)
+        value: migrations
+        icon: 📁
+      - id: orm
+        label: ORM models (Prisma/TypeORM)
+        value: orm
+        icon: 🔧
+      - id: typescript
+        label: TypeScript interfaces
+        value: typescript
+        icon: 📘
+      - id: diagram
+        label: Visual ER diagram
+        value: diagram
+        icon: 📊
+      - id: docs
+        label: Complete documentation
+        value: docs
+        icon: 📚
+
+  - id: database-name
+    name: Database Name
+    type: question
+    prompt: |
+      What should we name your database?
+      
+      Use lowercase letters, numbers, and underscores (e.g., my_app_db)
+    inputType: text
+    validation:
+      required: true
+      pattern: '^[a-z][a-z0-9_]*$'
+      maxLength: 50
+      message: Use lowercase letters, numbers, and underscores
+
+  # Phase 9: Review
+  - id: complete
+    name: Database Design Complete
+    type: review
+    prompt: |
+      🎉 Your database design is ready!
+      
+      **Database: {{answers.database-name}}**
+      **Type: {{answers.database-type}}**
+      
+      **Entities Created:**
+      {{#each answers.core-entities}}
+      • {{this}}
+      {{/each}}
+      {{#if answers.additional-entities}}
+      • {{answers.additional-entities}}
+      {{/if}}
+      
+      **Features Included:**
+      {{#each answers.advanced-features}}
+      • {{this}}
+      {{/each}}
+      
+      **What I'm generating:**
+      1. Complete SQL schema with all tables
+      2. Optimized indexes for your usage patterns
+      3. Migration files for easy deployment
+      4. TypeScript interfaces for type safety
+      5. Documentation with ER diagrams
+      
+      Ready to generate your complete database package? 🚀
+    inputType: text
+
+outputs:
+  - id: database-schema
+    name: Database Schema
+    type: code
+    files:
+      - path: "database/{{answers.database-name}}/schema.sql"
+        generator: generateDatabaseSchema
+      - path: "database/{{answers.database-name}}/indexes.sql"
+        generator: generateIndexes
+      - path: "database/{{answers.database-name}}/constraints.sql"
+        generator: generateConstraints
+      
+  - id: migrations
+    name: Migration Files
+    type: code
+    files:
+      - path: "database/{{answers.database-name}}/migrations/001_initial_schema.sql"
+        generator: generateMigrations
+      
+  - id: orm-models
+    name: ORM Models
+    type: code
+    files:
+      - path: "database/{{answers.database-name}}/models/schema.prisma"
+        generator: generatePrismaSchema
+        
+  - id: typescript-types
+    name: TypeScript Types
+    type: code
+    files:
+      - path: "database/{{answers.database-name}}/types/index.ts"
+        generator: generateTypeScriptTypes
+        
+  - id: documentation
+    name: Documentation
+    type: documentation
+    files:
+      - path: "database/{{answers.database-name}}/README.md"
+        generator: generateDatabaseDocs
+      - path: "database/{{answers.database-name}}/ER-diagram.md"
+        generator: generateERDiagram
