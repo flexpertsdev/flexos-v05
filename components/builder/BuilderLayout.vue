@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useBreakpoint } from '@vueuse/core'
+import { useBreakpoint } from '~/composables/useBreakpoint'
 import BuilderChat from './BuilderChat.vue'
 import BuilderContent from './BuilderContent.vue'
 import BuilderNavModal from './BuilderNavModal.vue'
