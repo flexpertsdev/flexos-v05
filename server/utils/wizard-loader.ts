@@ -2,7 +2,6 @@ import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import { parse as parseYAML } from 'yaml'
 import type { WizardConfig } from '~/types/wizard'
-import { useStorage } from '#imports'
 
 // Cache for loaded wizards
 const wizardCache = new Map<string, WizardConfig>()
@@ -51,6 +50,7 @@ export async function getWizardList(): Promise<WizardConfig[]> {
   // In production, use Nitro storage
   if (!isDev) {
     try {
+      const { useStorage } = await import('#imports')
       const storage = useStorage('assets:wizards')
       const keys = await storage.getKeys()
       console.log(`[Wizard Loader] Found wizard files in storage: ${keys.join(', ')}`)
@@ -140,6 +140,7 @@ export async function getWizardConfig(wizardId: string): Promise<WizardConfig | 
   // In production, use Nitro storage
   if (!isDev) {
     try {
+      const { useStorage } = await import('#imports')
       const storage = useStorage('assets:wizards')
       const extensions = ['.yaml', '.yml', '.json']
       

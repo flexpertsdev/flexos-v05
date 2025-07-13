@@ -205,6 +205,33 @@
       </button>
     </div>
 
+    <!-- Form Input (multiple fields) -->
+    <div v-else-if="phase.inputType === 'form'" class="form-wrapper">
+      <div class="form-fields">
+        <div v-for="input in phase.inputs" :key="input.id" class="form-field">
+          <label :for="`form-${input.id}`" class="form-label">
+            {{ input.label }}
+            <span v-if="input.validation?.required" class="required">*</span>
+          </label>
+          <input
+            :id="`form-${input.id}`"
+            :type="input.type || 'text'"
+            v-model="formData[input.id]"
+            :placeholder="input.placeholder || input.label"
+            @keypress.enter.prevent="handleFormEnter"
+            class="form-input"
+            :ref="el => setFormInputRef(input.id, el)"
+          />
+          <div v-if="formErrors[input.id]" class="field-error">
+            {{ formErrors[input.id] }}
+          </div>
+        </div>
+      </div>
+      <button @click="submitForm" class="submit-button">
+        Continue →
+      </button>
+    </div>
+
     <!-- Validation Error -->
     <div v-if="validationError" class="validation-error">
       {{ validationError }}
@@ -240,6 +267,18 @@ const localValue = ref<any>(
 const validationError = ref('')
 const inputRef = ref<HTMLElement>()
 const hasAttemptedSubmit = ref(false)
+
+// Form specific state
+const formData = ref<Record<string, any>>({})
+const formErrors = ref<Record<string, string>>({})
+const formInputRefs = ref<Record<string, HTMLInputElement>>({})
+
+// Initialize form data if phase is form type
+if (props.phase.inputType === 'form' && props.phase.inputs) {
+  props.phase.inputs.forEach(input => {
+    formData.value[input.id] = props.value?.[input.id] || ''
+  })
+}
 
 // Computed
 const isValid = computed(() => {
@@ -372,6 +411,88 @@ function getStylePreview(metadata: any) {
     color: metadata.accent
   }
 }
+
+// Form handling methods
+function setFormInputRef(id: string, el: any) {
+  if (el) {
+    formInputRefs.value[id] = el
+  }
+}
+
+function handleFormEnter() {
+  // Move to next field on enter, or submit if on last field
+  if (props.phase.inputs) {
+    const currentIndex = props.phase.inputs.findIndex(input => 
+      document.activeElement === formInputRefs.value[input.id]
+    )
+    
+    if (currentIndex < props.phase.inputs.length - 1) {
+      // Focus next field
+      const nextInput = props.phase.inputs[currentIndex + 1]
+      formInputRefs.value[nextInput.id]?.focus()
+    } else {
+      // Submit form
+      submitForm()
+    }
+  }
+}
+
+function validateFormField(inputConfig: any, value: any): string | null {
+  const rules = inputConfig.validation
+  if (!rules) return null
+  
+  // Required
+  if (rules.required && !value) {
+    return rules.message || `${inputConfig.label} is required`
+  }
+  
+  // Email validation
+  if (rules.email && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+    return rules.message || 'Invalid email address'
+  }
+  
+  // Pattern validation
+  if (rules.pattern && value && !new RegExp(rules.pattern).test(value)) {
+    return rules.message || 'Invalid format'
+  }
+  
+  return null
+}
+
+function submitForm() {
+  // Clear previous errors
+  formErrors.value = {}
+  
+  // Validate all fields
+  let hasErrors = false
+  
+  if (props.phase.inputs) {
+    props.phase.inputs.forEach(input => {
+      const error = validateFormField(input, formData.value[input.id])
+      if (error) {
+        formErrors.value[input.id] = error
+        hasErrors = true
+      }
+    })
+  }
+  
+  if (!hasErrors) {
+    emit('submit', formData.value)
+  } else {
+    // Focus first field with error
+    const firstErrorField = props.phase.inputs?.find(input => formErrors.value[input.id])
+    if (firstErrorField) {
+      formInputRefs.value[firstErrorField.id]?.focus()
+    }
+  }
+}
+
+// Watch form data changes
+watch(formData, (newValue) => {
+  if (props.phase.inputType === 'form') {
+    emit('update', newValue)
+  }
+}, { deep: true })
 </script>
 
 <style scoped>
@@ -621,6 +742,60 @@ input[type="radio"]:checked + .radio-custom::after {
   background: var(--bg-quaternary);
   color: var(--text-muted);
   cursor: not-allowed;
+}
+
+/* Form Input */
+.form-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-weight: 500;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+}
+
+.form-label .required {
+  color: #ef4444;
+  margin-left: 0.25rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  background: var(--bg-quaternary);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 0.9375rem;
+  font-family: inherit;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--primary-500);
+  background: var(--bg-tertiary);
+}
+
+.field-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  margin-top: -0.25rem;
 }
 
 /* Validation Error */

@@ -17,15 +17,24 @@ export interface WizardConfig {
 export interface WizardPhase {
   id: string
   name: string
-  type: 'question' | 'analysis' | 'selection' | 'validation' | 'review'
+  type: 'question' | 'analysis' | 'selection' | 'validation' | 'review' | 'form'
   prompt: string
   helpText?: string
   inputType: WizardInputType
   options?: WizardOption[]
+  inputs?: FormInput[] // For form input type
   validation?: ValidationRules
   branching?: BranchingLogic
   aiConfig?: AIPhaseConfig
   dependencies?: string[] // Phase IDs this phase depends on
+}
+
+export interface FormInput {
+  id: string
+  label: string
+  type: 'text' | 'email' | 'tel' | 'number' | 'url' | 'password'
+  placeholder?: string
+  validation?: ValidationRules
 }
 
 export type WizardInputType = 
@@ -45,6 +54,7 @@ export type WizardInputType =
   | 'date'
   | 'color'
   | 'style-grid'
+  | 'form'
 
 export interface WizardOption {
   id: string

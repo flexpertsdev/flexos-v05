@@ -198,6 +198,8 @@ const exitWizard = () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  min-height: 0; /* Important for flex scrolling */
 }
 
 /* Process Panel */
@@ -206,6 +208,8 @@ const exitWizard = () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+  min-height: 0; /* Important for flex scrolling */
 }
 
 /* Mobile Responsive */
