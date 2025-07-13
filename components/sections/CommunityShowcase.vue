@@ -70,8 +70,8 @@
 
     <!-- Project Preview Modal -->
     <transition name="modal-fade">
-      <div v-if="showProjectModal" class="project-modal" @click="closeProjectPreview">
-        <div class="project-modal-content" @click.stop>
+      <div v-if="showProjectModal" class="modal-overlay" @click="closeProjectPreview">
+        <div class="modal" @click.stop>
           <button class="modal-close" @click="closeProjectPreview">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M18 6L6 18M6 6l12 12"/>
@@ -79,40 +79,42 @@
           </button>
           
           <div class="modal-grid">
-            <div class="modal-preview">
-              <img :src="selectedProject?.screenshot" :alt="selectedProject?.name" />
-            </div>
-            
-            <div class="modal-info">
-              <h2 class="modal-title">{{ selectedProject?.name }}</h2>
-              <p class="modal-description">{{ selectedProject?.fullDescription }}</p>
-              
-              <div class="modal-features">
-                <h4>Key Features</h4>
-                <ul>
-                  <li v-for="feature in selectedProject?.features" :key="feature">
-                    {{ feature }}
-                  </li>
-                </ul>
+            <div class="modal-content">
+              <div class="modal-preview">
+                <img :src="selectedProject?.screenshot" :alt="selectedProject?.name" />
               </div>
               
-              <div class="modal-tech">
-                <h4>Built With</h4>
-                <div class="tech-tags">
-                  <span v-for="tech in selectedProject?.techStack" :key="tech" class="tech-tag">
-                    {{ tech }}
-                  </span>
+              <div class="modal-info">
+                <h2 class="modal-title">{{ selectedProject?.name }}</h2>
+                <p class="modal-description">{{ selectedProject?.fullDescription }}</p>
+                
+                <div class="modal-features">
+                  <h4>Key Features</h4>
+                  <ul>
+                    <li v-for="feature in selectedProject?.features" :key="feature">
+                      {{ feature }}
+                    </li>
+                  </ul>
+                </div>
+                
+                <div class="modal-tech">
+                  <h4>Built With</h4>
+                  <div class="tech-tags">
+                    <span v-for="tech in selectedProject?.techStack" :key="tech" class="tech-tag">
+                      {{ tech }}
+                    </span>
+                  </div>
                 </div>
               </div>
-              
-              <div class="modal-actions">
-                <a :href="selectedProject?.liveUrl" target="_blank" class="modal-cta-primary">
-                  Visit Live Site
-                </a>
-                <button class="modal-cta-secondary" @click="startSimilarProject">
-                  Build Something Similar
-                </button>
-              </div>
+            </div>
+            
+            <div class="modal-actions">
+              <a :href="selectedProject?.liveUrl" target="_blank" class="modal-cta-primary">
+                Visit Live Site
+              </a>
+              <button class="modal-cta-secondary" @click="startSimilarProject">
+                Build Something Similar
+              </button>
             </div>
           </div>
         </div>
@@ -515,7 +517,7 @@ const startSimilarProject = () => {
 }
 
 /* Project Modal */
-.project-modal {
+.modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.9);
@@ -526,14 +528,16 @@ const startSimilarProject = () => {
   padding: 2rem;
 }
 
-.project-modal-content {
+.modal {
   background: var(--bg-secondary);
   border-radius: 20px;
   max-width: 1200px;
   width: 100%;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: hidden;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .modal-close {
@@ -559,10 +563,17 @@ const startSimilarProject = () => {
 }
 
 .modal-grid {
+  display: flex;
+  flex-direction: column;
+  padding: 3rem;
+  height: 100%;
+}
+
+.modal-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
-  padding: 3rem;
+  flex: 1;
 }
 
 .modal-preview {
@@ -700,7 +711,7 @@ const startSimilarProject = () => {
     grid-template-columns: repeat(2, 1fr);
   }
   
-  .modal-grid {
+  .modal-content {
     grid-template-columns: 1fr;
     gap: 2rem;
   }
@@ -732,8 +743,44 @@ const startSimilarProject = () => {
     font-size: 1rem;
   }
   
+  /* Full page modal on mobile */
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    margin: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modal-close {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+  }
+  
   .modal-grid {
-    padding: 2rem;
+    padding: 1.5rem;
+    padding-top: calc(3.5rem + env(safe-area-inset-top));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal-content {
+    flex: 1;
+    overflow-y: auto;
   }
   
   .modal-title {
@@ -742,6 +789,13 @@ const startSimilarProject = () => {
   
   .modal-actions {
     flex-direction: column;
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-secondary);
+    margin: 0 -1.5rem -1.5rem;
+    padding: 1rem 1.5rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border-primary);
   }
 }
 </style>

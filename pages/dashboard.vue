@@ -134,7 +134,7 @@
     <Teleport to="body">
       <div v-if="showNewProjectModal" class="modal-overlay" @click="closeNewProjectModal">
         <div class="modal" @click.stop>
-          <h2>Create New Project</h2>
+          <h2 @click="handleModalHeaderClick">Create New Project</h2>
           
           <form @submit.prevent="createProject" class="project-form">
             <div class="form-group">
@@ -434,6 +434,19 @@ const handleSignOut = async () => {
   }
 }
 
+// Handle modal header click (for mobile close button)
+const handleModalHeaderClick = (event: MouseEvent) => {
+  // Check if click is on the pseudo-element (close button)
+  const target = event.target as HTMLElement
+  const rect = target.getBoundingClientRect()
+  const x = event.clientX - rect.left
+  
+  // If click is in the right 3rem area (where the × is)
+  if (x > rect.width - 48) {
+    closeNewProjectModal()
+  }
+}
+
 // Click outside to close dropdown
 const handleClickOutside = (event: MouseEvent) => {
   if (
@@ -652,12 +665,13 @@ onUnmounted(() => {
 
 /* Search Section */
 .search-section {
-  margin-bottom: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
 }
 
 .search-wrapper {
   position: relative;
-  max-width: 500px;
+  max-width: 400px;
   margin: 0 auto;
 }
 
@@ -667,32 +681,34 @@ onUnmounted(() => {
   top: 50%;
   transform: translateY(-50%);
   color: var(--text-tertiary);
+  opacity: 0.5;
   pointer-events: none;
 }
 
 .search-input {
   width: 100%;
-  padding: 0.875rem 1rem 0.875rem 3rem;
-  background: var(--bg-secondary);
-  border: 2px solid var(--border-primary);
-  border-radius: 12px;
-  font-size: 1rem;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  font-size: 0.875rem;
   color: var(--text-primary);
   transition: all 0.2s;
 }
 
 .search-input::placeholder {
   color: var(--text-tertiary);
+  opacity: 0.6;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: var(--primary-500);
-  box-shadow: 0 0 0 3px rgba(22, 193, 129, 0.1);
+  background: var(--bg-secondary);
+  border-color: var(--border-secondary);
 }
 
 .search-input:hover {
-  border-color: var(--border-secondary);
+  background: var(--bg-secondary);
 }
 
 .new-project-button {
@@ -1210,6 +1226,71 @@ onUnmounted(() => {
     flex-direction: column;
     text-align: center;
     padding: 1rem 0.5rem;
+  }
+  
+  /* Full page modal on mobile */
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    max-width: 100%;
+    max-height: 100%;
+    border-radius: 0;
+    margin: 0;
+    padding: 1.5rem;
+    padding-top: calc(1.5rem + env(safe-area-inset-top));
+    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .modal h2 {
+    position: relative;
+    padding-right: 3rem;
+  }
+  
+  /* Add close button for mobile modal */
+  .modal h2::after {
+    content: '×';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    font-weight: 300;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  
+  .modal h2:hover::after {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+  }
+  
+  .project-form {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    background: var(--bg-secondary);
+    margin: 0 -1.5rem -1.5rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-primary);
   }
 }
 </style>
