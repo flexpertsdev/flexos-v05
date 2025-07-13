@@ -225,6 +225,7 @@ const toggleFaq = (index: number) => {
 <style scoped>
 .academy-page {
   min-height: 100vh;
+  min-height: 100dvh;
   background: var(--bg-primary);
   padding-top: calc(60px + env(safe-area-inset-top, 0)); /* Account for fixed header */
 }

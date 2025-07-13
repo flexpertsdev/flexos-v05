@@ -533,7 +533,9 @@ const startSimilarProject = () => {
   border-radius: 20px;
   max-width: 1200px;
   width: 100%;
-  max-height: 90vh;
+  height: 90vh;
+  height: 90dvh;
+  max-height: 90dvh;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -565,8 +567,8 @@ const startSimilarProject = () => {
 .modal-grid {
   display: flex;
   flex-direction: column;
-  padding: 3rem;
   height: 100%;
+  overflow: hidden;
 }
 
 .modal-content {
@@ -574,6 +576,28 @@ const startSimilarProject = () => {
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
   flex: 1;
+  overflow-y: auto;
+  padding: 3rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: 4px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+  background: var(--border-secondary);
 }
 
 .modal-preview {
@@ -753,11 +777,10 @@ const startSimilarProject = () => {
     height: 100vh;
     height: 100dvh;
     max-width: 100%;
-    max-height: 100%;
+    max-height: 100dvh;
     border-radius: 0;
     margin: 0;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
+    overflow: hidden;
   }
   
   .modal-close {
@@ -781,6 +804,8 @@ const startSimilarProject = () => {
   .modal-content {
     flex: 1;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 1.5rem;
   }
   
   .modal-title {

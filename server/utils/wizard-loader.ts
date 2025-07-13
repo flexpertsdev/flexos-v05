@@ -47,44 +47,11 @@ async function getWizardsPath(): Promise<string | null> {
 export async function getWizardList(): Promise<WizardConfig[]> {
   const isDev = process.env.NODE_ENV === 'development'
   
-  // In production, use Nitro storage
+  // In production, use filesystem fallback since Nitro storage isn't available during build
   if (!isDev) {
-    try {
-      const { useStorage } = await import('#imports')
-      const storage = useStorage('assets:wizards')
-      const keys = await storage.getKeys()
-      console.log(`[Wizard Loader] Found wizard files in storage: ${keys.join(', ')}`)
-      
-      const wizards: WizardConfig[] = []
-      
-      for (const key of keys) {
-        if (key.endsWith('.yaml') || key.endsWith('.yml') || key.endsWith('.json')) {
-          const content = await storage.getItem(key) as string
-          const wizardId = key.replace(/\.(yaml|yml|json)$/, '')
-          
-          let config: any
-          if (key.endsWith('.json')) {
-            config = JSON.parse(content)
-          } else {
-            config = parseYAML(content)
-          }
-          
-          if (!config.id) {
-            config.id = wizardId
-          }
-          
-          if (validateWizardConfig(config)) {
-            wizards.push(config as WizardConfig)
-            console.log(`[Wizard Loader] Loaded wizard from storage: ${wizardId}`)
-          }
-        }
-      }
-      
-      return wizards.length > 0 ? wizards : getDefaultWizards()
-    } catch (error) {
-      console.warn('[Wizard Loader] Error loading from storage:', error)
-      return getDefaultWizards()
-    }
+    // In production builds, wizards are bundled so we'll use the default wizards
+    console.log('[Wizard Loader] Using default wizards for production build')
+    return getDefaultWizards()
   }
   
   // In development, use filesystem
@@ -137,43 +104,16 @@ export async function getWizardConfig(wizardId: string): Promise<WizardConfig | 
   
   const isDev = process.env.NODE_ENV === 'development'
   
-  // In production, use Nitro storage
+  // In production, use default wizards
   if (!isDev) {
-    try {
-      const { useStorage } = await import('#imports')
-      const storage = useStorage('assets:wizards')
-      const extensions = ['.yaml', '.yml', '.json']
-      
-      for (const ext of extensions) {
-        try {
-          const key = `${wizardId}${ext}`
-          const content = await storage.getItem(key) as string
-          
-          if (content) {
-            let config: any
-            if (ext === '.json') {
-              config = JSON.parse(content)
-            } else {
-              config = parseYAML(content)
-            }
-            
-            if (!config.id) {
-              config.id = wizardId
-            }
-            
-            if (validateWizardConfig(config)) {
-              wizardCache.set(wizardId, config as WizardConfig)
-              console.log(`[Wizard Loader] Loaded wizard from storage: ${wizardId}`)
-              return config as WizardConfig
-            }
-          }
-        } catch (error) {
-          // Try next extension
-        }
-      }
-    } catch (error) {
-      console.warn('[Wizard Loader] Error loading from storage:', error)
+    // Check default wizards first
+    const defaultWizards = getDefaultWizards()
+    const defaultWizard = defaultWizards.find(w => w.id === wizardId)
+    if (defaultWizard) {
+      wizardCache.set(wizardId, defaultWizard)
+      return defaultWizard
     }
+    return null
   } else {
     // In development, use filesystem
     const wizardsPath = await getWizardsPath()
@@ -573,6 +513,68 @@ function getDefaultWizards(): WizardConfig[] {
           ]
         }
       ]
+    },
+    {
+      id: 'flexfluencer',
+      name: 'Become a Flexfluencer',
+      description: 'Join our influencer program and earn money by promoting apps',
+      icon: '💰',
+      category: 'business' as const,
+      version: '1.0.0',
+      phases: [
+        {
+          id: 'welcome',
+          name: 'Welcome',
+          type: 'question',
+          prompt: 'Welcome to the Flexfluencer Program! 🚀\n\nAs a Flexfluencer, you\'ll earn money by promoting amazing apps built by our community.\n\nLet\'s start with your name. What should we call you?',
+          inputType: 'text',
+          validation: {
+            required: true,
+            minLength: 2,
+            message: 'Please enter your name'
+          }
+        },
+        {
+          id: 'contact',
+          name: 'Contact Information',
+          type: 'form' as const,
+          prompt: 'Almost done! We just need your contact information.\n\nThis is how we\'ll reach out about opportunities and send your earnings.',
+          inputType: 'form',
+          inputs: [
+            {
+              id: 'email',
+              label: 'Email Address',
+              type: 'email',
+              validation: {
+                required: true,
+                email: true,
+                message: 'Please enter a valid email'
+              }
+            },
+            {
+              id: 'phone',
+              label: 'Phone Number (Optional)',
+              type: 'tel',
+              validation: {
+                required: false,
+                pattern: '^[\\+]?[(]?[0-9]{3}[)]?[-\\s\\.]?[0-9]{3}[-\\s\\.]?[0-9]{4,6}$',
+                message: 'Please enter a valid phone number'
+              }
+            },
+            {
+              id: 'paypal',
+              label: 'PayPal Email (for payments)',
+              type: 'email',
+              validation: {
+                required: true,
+                email: true,
+                message: 'Please enter your PayPal email'
+              }
+            }
+          ]
+        }
+      ],
+      outputs: []
     }
   ]
 }
