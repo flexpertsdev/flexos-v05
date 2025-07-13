@@ -143,13 +143,13 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useNavigation } from '@/composables/useNavigation'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import BottomSheet from '@/components/layout/BottomSheet.vue'
-import AcademyHero from '@/components/academy/AcademyHero.vue'
-import CurriculumTimeline from '@/components/academy/CurriculumTimeline.vue'
-import PricingSection from '@/components/academy/PricingSection.vue'
-import TestimonialsCarousel from '@/components/academy/TestimonialsCarousel.vue'
+import { useNavigation } from '~/composables/useNavigation'
+import AppHeader from '~/components/layout/AppHeader.vue'
+import BottomSheet from '~/components/layout/BottomSheet.vue'
+import AcademyHero from '~/components/academy/AcademyHero.vue'
+import CurriculumTimeline from '~/components/academy/CurriculumTimeline.vue'
+import PricingSection from '~/components/academy/PricingSection.vue'
+import TestimonialsCarousel from '~/components/academy/TestimonialsCarousel.vue'
 
 const { menuOpen } = useNavigation()
 

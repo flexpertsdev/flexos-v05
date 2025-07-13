@@ -137,11 +137,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 // Import images using Nuxt assets
-import josImage from '@/assets/images/flexperts/jos.png'
-import dimitarImage from '@/assets/images/flexperts/dimitar.png'
-import bellaImage from '@/assets/images/flexperts/bella.png'
-import rosieImage from '@/assets/images/flexperts/rosie.png'
-import satoshiImage from '@/assets/images/flexperts/satoshi.png'
+import josImage from '~/assets/images/flexperts/jos.png'
+import dimitarImage from '~/assets/images/flexperts/dimitar.png'
+import bellaImage from '~/assets/images/flexperts/bella.png'
+import rosieImage from '~/assets/images/flexperts/rosie.png'
+import satoshiImage from '~/assets/images/flexperts/satoshi.png'
 
 interface Expert {
   id: string

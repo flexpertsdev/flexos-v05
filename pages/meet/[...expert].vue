@@ -61,21 +61,21 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useNavigation } from '@/composables/useNavigation'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import BottomSheet from '@/components/layout/BottomSheet.vue'
-import ExpertGrid from '@/components/meet/ExpertGrid.vue'
-import ExpertProfile from '@/components/meet/ExpertProfile.vue'
-import YouTubeShowcase from '@/components/meet/YouTubeShowcase.vue'
-import type { Expert } from '@/components/meet/ExpertGrid.vue'
+import { useNavigation } from '~/composables/useNavigation'
+import AppHeader from '~/components/layout/AppHeader.vue'
+import BottomSheet from '~/components/layout/BottomSheet.vue'
+import ExpertGrid from '~/components/meet/ExpertGrid.vue'
+import ExpertProfile from '~/components/meet/ExpertProfile.vue'
+import YouTubeShowcase from '~/components/meet/YouTubeShowcase.vue'
+import type { Expert } from '~/components/meet/ExpertGrid.vue'
 
 const { menuOpen } = useNavigation()
 // Import images using Nuxt assets
-import josImage from '@/assets/images/flexperts/jos.png'
-import dimitarImage from '@/assets/images/flexperts/dimitar.png'
-import bellaImage from '@/assets/images/flexperts/bella.png'
-import rosieImage from '@/assets/images/flexperts/rosie.png'
-import satoshiImage from '@/assets/images/flexperts/satoshi.png'
+import josImage from '~/assets/images/flexperts/jos.png'
+import dimitarImage from '~/assets/images/flexperts/dimitar.png'
+import bellaImage from '~/assets/images/flexperts/bella.png'
+import rosieImage from '~/assets/images/flexperts/rosie.png'
+import satoshiImage from '~/assets/images/flexperts/satoshi.png'
 
 const route = useRoute()
 const router = useRouter()

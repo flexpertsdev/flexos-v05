@@ -11,17 +11,11 @@
           </NuxtLink>
           <div class="page-info">
             <h1 class="page-title">My Projects</h1>
-            <p class="page-subtitle">Build amazing applications with FlexOS</p>
           </div>
         </div>
         
         <!-- Actions -->
         <div class="header-right">
-          <button @click="showNewProjectModal = true" class="new-project-button">
-            <span class="plus-icon">+</span>
-            <span class="button-text">New Project</span>
-          </button>
-          
           <!-- User Menu -->
           <div class="user-menu">
             <button @click="toggleUserMenu" class="user-button" ref="userButtonRef">
@@ -57,6 +51,22 @@
     </header>
 
     <div class="dashboard-container">
+      <!-- Search Section -->
+      <div v-if="!loading" class="search-section">
+        <div class="search-wrapper">
+          <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search projects..."
+            class="search-input"
+          />
+        </div>
+      </div>
+
       <!-- Loading state -->
       <div v-if="loading" class="loading-state">
         <div class="loader"></div>
@@ -75,8 +85,21 @@
 
       <!-- Projects grid -->
       <div v-else class="projects-grid">
+        <!-- New Project Card -->
         <div
-          v-for="project in projects"
+          @click="showNewProjectModal = true"
+          class="project-card new-project-card"
+        >
+          <div class="new-project-content">
+            <div class="new-project-icon">+</div>
+            <h3 class="new-project-text">New Project</h3>
+            <p class="new-project-hint">Create a new FlexOS project</p>
+          </div>
+        </div>
+        
+        <!-- Existing Projects -->
+        <div
+          v-for="project in filteredProjects"
           :key="project.id"
           @click="openProject(project)"
           class="project-card"
@@ -196,7 +219,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import type { Database } from '@/types/database'
+import type { Database } from '~/types/database'
 
 // Require authentication
 definePageMeta({
@@ -216,6 +239,7 @@ const showNewProjectModal = ref(false)
 const activeMenu = ref<string | null>(null)
 const createLoading = ref(false)
 const createError = ref('')
+const searchQuery = ref('')
 
 // Refs for user menu
 const userButtonRef = ref<HTMLElement>()
@@ -380,6 +404,19 @@ const userInitial = computed(() => {
     return user.value.email.charAt(0).toUpperCase()
   }
   return 'U'
+})
+
+const filteredProjects = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return projects.value
+  }
+  
+  const query = searchQuery.value.toLowerCase()
+  return projects.value.filter(project => 
+    project.name.toLowerCase().includes(query) ||
+    project.description?.toLowerCase().includes(query) ||
+    project.type.toLowerCase().includes(query)
+  )
 })
 
 // Toggle user menu
@@ -613,6 +650,51 @@ onUnmounted(() => {
   padding-top: 1rem;
 }
 
+/* Search Section */
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.search-wrapper {
+  position: relative;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  background: var(--bg-secondary);
+  border: 2px solid var(--border-primary);
+  border-radius: 12px;
+  font-size: 1rem;
+  color: var(--text-primary);
+  transition: all 0.2s;
+}
+
+.search-input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+  box-shadow: 0 0 0 3px rgba(22, 193, 129, 0.1);
+}
+
+.search-input:hover {
+  border-color: var(--border-secondary);
+}
+
 .new-project-button {
   background: var(--primary-500);
   color: white;
@@ -822,6 +904,66 @@ onUnmounted(() => {
   background: var(--bg-tertiary);
   padding: 0.25rem 0.75rem;
   border-radius: 100px;
+}
+
+/* New Project Card */
+.new-project-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border-style: dashed;
+  background: var(--bg-primary);
+  position: relative;
+  overflow: hidden;
+}
+
+.new-project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-400) 100%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.new-project-card:hover::before {
+  opacity: 0.05;
+}
+
+.new-project-card:hover {
+  border-color: var(--primary-500);
+  border-style: solid;
+}
+
+.new-project-card:hover .new-project-icon {
+  transform: rotate(90deg) scale(1.1);
+  color: var(--primary-500);
+}
+
+.new-project-content {
+  position: relative;
+  text-align: center;
+  z-index: 1;
+}
+
+.new-project-icon {
+  font-size: 3rem;
+  color: var(--text-tertiary);
+  margin-bottom: 0.5rem;
+  transition: all 0.3s;
+}
+
+.new-project-text {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.new-project-hint {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
 }
 
 /* Modal */

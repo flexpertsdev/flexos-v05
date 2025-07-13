@@ -34,18 +34,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useNavigation } from '@/composables/useNavigation'
-import { useAuth } from '@/composables/useAuth'
-import AppHeader from '@/components/layout/AppHeader.vue'
-import BottomSheet from '@/components/layout/BottomSheet.vue'
-import HeroSection from '@/components/sections/HeroSection.vue'
-import DifferentiatorsSection from '@/components/sections/DifferentiatorsSection.vue'
-import FeaturesSection from '@/components/sections/FeaturesSection.vue'
-import PricingSection from '@/components/sections/PricingSection.vue'
-import HireExpertSection from '@/components/sections/HireExpertSection.vue'
-import WebsiteRefreshSection from '@/components/sections/WebsiteRefreshSection.vue'
-import CommunityShowcase from '@/components/sections/CommunityShowcase.vue'
-import FooterSection from '@/components/sections/FooterSection.vue'
+import { useNavigation } from '~/composables/useNavigation'
+import { useAuth } from '~/composables/useAuth'
+import AppHeader from '~/components/layout/AppHeader.vue'
+import BottomSheet from '~/components/layout/BottomSheet.vue'
+import HeroSection from '~/components/sections/HeroSection.vue'
+import DifferentiatorsSection from '~/components/sections/DifferentiatorsSection.vue'
+import FeaturesSection from '~/components/sections/FeaturesSection.vue'
+import PricingSection from '~/components/sections/PricingSection.vue'
+import HireExpertSection from '~/components/sections/HireExpertSection.vue'
+import WebsiteRefreshSection from '~/components/sections/WebsiteRefreshSection.vue'
+import CommunityShowcase from '~/components/sections/CommunityShowcase.vue'
+import FooterSection from '~/components/sections/FooterSection.vue'
 
 const { menuOpen } = useNavigation()
 const { isAuthenticated, isLoading } = useAuth()
