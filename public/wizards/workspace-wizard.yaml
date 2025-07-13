@@ -1,0 +1,455 @@
+id: workspace-wizard
+name: Workspace Setup Wizard
+description: Set up a complete development workspace with tools, configurations, and team settings
+icon: 💻
+category: project
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 10
+
+phases:
+  # Phase 1: Project Setup
+  - id: project-name
+    name: Project Name
+    type: question
+    prompt: |
+      Let's set up your development workspace! 💻
+      
+      I'll help you configure everything from Git to deployment, ensuring your team can collaborate effectively.
+      
+      What's your project name?
+    inputType: text
+    validation:
+      required: true
+      pattern: '^[a-z][a-z0-9-]*$'
+      message: Use lowercase letters, numbers, and hyphens
+
+  - id: project-type
+    name: Project Type
+    type: selection
+    prompt: |
+      What type of project is {{answers.project-name}}?
+    inputType: radio
+    options:
+      - id: web-app
+        label: Web Application
+        value: web-app
+        icon: 🌐
+      - id: mobile-app
+        label: Mobile App
+        value: mobile-app
+        icon: 📱
+      - id: pwa
+        label: Progressive Web App
+        value: pwa
+        icon: 📲
+      - id: api
+        label: API/Backend Service
+        value: api
+        icon: 🔌
+      - id: fullstack
+        label: Full-stack Application
+        value: fullstack
+        icon: 🔧
+      - id: library
+        label: Library/Package
+        value: library
+        icon: 📦
+
+  # Phase 2: Tech Stack
+  - id: framework
+    name: Framework Selection
+    type: selection
+    prompt: |
+      Which framework/stack will you use?
+    inputType: radio
+    options:
+      - id: vue-nuxt
+        label: Vue 3 + Nuxt 3
+        value: vue-nuxt
+        icon: 💚
+      - id: react-next
+        label: React + Next.js
+        value: react-next
+        icon: ⚛️
+      - id: vue-vite
+        label: Vue 3 + Vite
+        value: vue-vite
+        icon: ⚡
+      - id: react-vite
+        label: React + Vite
+        value: react-vite
+        icon: 🚀
+      - id: angular
+        label: Angular
+        value: angular
+        icon: 🅰️
+      - id: custom
+        label: Custom setup
+        value: custom
+        icon: 🛠️
+
+  - id: styling
+    name: Styling Approach
+    type: selection
+    prompt: |
+      How will you handle styling?
+    inputType: radio
+    options:
+      - id: tailwind
+        label: Tailwind CSS
+        value: tailwind
+        icon: 🎨
+      - id: css-modules
+        label: CSS Modules
+        value: css-modules
+        icon: 📦
+      - id: styled-components
+        label: CSS-in-JS (Styled Components/Emotion)
+        value: styled-components
+        icon: 💅
+      - id: sass
+        label: Sass/SCSS
+        value: sass
+        icon: 🎯
+      - id: vanilla
+        label: Vanilla CSS
+        value: vanilla
+        icon: 📄
+
+  # Phase 3: Development Tools
+  - id: dev-tools
+    name: Development Tools
+    type: selection
+    prompt: |
+      Which development tools do you need?
+    inputType: checkboxes
+    options:
+      - id: typescript
+        label: TypeScript
+        value: typescript
+        icon: 📘
+      - id: eslint
+        label: ESLint (code linting)
+        value: eslint
+        icon: 🔍
+      - id: prettier
+        label: Prettier (code formatting)
+        value: prettier
+        icon: ✨
+      - id: husky
+        label: Husky (Git hooks)
+        value: husky
+        icon: 🐶
+      - id: testing
+        label: Testing framework (Jest/Vitest)
+        value: testing
+        icon: 🧪
+      - id: storybook
+        label: Storybook (component docs)
+        value: storybook
+        icon: 📚
+      - id: docker
+        label: Docker configuration
+        value: docker
+        icon: 🐳
+
+  # Phase 4: Version Control
+  - id: git-provider
+    name: Git Provider
+    type: selection
+    prompt: |
+      Where will you host your code?
+    inputType: radio
+    options:
+      - id: github
+        label: GitHub
+        value: github
+        icon: 🐙
+      - id: gitlab
+        label: GitLab
+        value: gitlab
+        icon: 🦊
+      - id: bitbucket
+        label: Bitbucket
+        value: bitbucket
+        icon: 🪣
+      - id: azure
+        label: Azure DevOps
+        value: azure
+        icon: ☁️
+      - id: self-hosted
+        label: Self-hosted Git
+        value: self-hosted
+        icon: 🏠
+
+  - id: git-workflow
+    name: Git Workflow
+    type: selection
+    prompt: |
+      Which Git workflow will your team use?
+    inputType: radio
+    options:
+      - id: github-flow
+        label: GitHub Flow (simple, continuous deployment)
+        value: github-flow
+        icon: 🔄
+      - id: git-flow
+        label: Git Flow (release branches)
+        value: git-flow
+        icon: 🌿
+      - id: gitlab-flow
+        label: GitLab Flow (environment branches)
+        value: gitlab-flow
+        icon: 🦊
+      - id: trunk
+        label: Trunk-based (single branch)
+        value: trunk
+        icon: 🌳
+
+  # Phase 5: Team Setup
+  - id: team-size
+    name: Team Size
+    type: selection
+    prompt: |
+      How many developers will work on this project?
+    inputType: radio
+    options:
+      - id: solo
+        label: Just me
+        value: solo
+        icon: 👤
+      - id: small
+        label: 2-5 developers
+        value: small
+        icon: 👥
+      - id: medium
+        label: 6-20 developers
+        value: medium
+        icon: 👨‍👩‍👧‍👦
+      - id: large
+        label: 20+ developers
+        value: large
+        icon: 🏢
+
+  - id: collaboration-tools
+    name: Collaboration Tools
+    type: selection
+    prompt: |
+      Which collaboration tools will you use?
+    inputType: checkboxes
+    options:
+      - id: slack
+        label: Slack
+        value: slack
+        icon: 💬
+      - id: discord
+        label: Discord
+        value: discord
+        icon: 🎮
+      - id: teams
+        label: Microsoft Teams
+        value: teams
+        icon: 👥
+      - id: jira
+        label: Jira
+        value: jira
+        icon: 📋
+      - id: linear
+        label: Linear
+        value: linear
+        icon: 📊
+      - id: notion
+        label: Notion
+        value: notion
+        icon: 📝
+      - id: figma
+        label: Figma
+        value: figma
+        icon: 🎨
+
+  # Phase 6: CI/CD
+  - id: ci-cd
+    name: CI/CD Setup
+    type: selection
+    prompt: |
+      How do you want to handle continuous integration and deployment?
+    inputType: radio
+    options:
+      - id: github-actions
+        label: GitHub Actions
+        value: github-actions
+        icon: 🐙
+      - id: gitlab-ci
+        label: GitLab CI
+        value: gitlab-ci
+        icon: 🦊
+      - id: circleci
+        label: CircleCI
+        value: circleci
+        icon: ⭕
+      - id: jenkins
+        label: Jenkins
+        value: jenkins
+        icon: 🏗️
+      - id: vercel
+        label: Vercel (automatic)
+        value: vercel
+        icon: ▲
+      - id: netlify
+        label: Netlify (automatic)
+        value: netlify
+        icon: 🔷
+      - id: none
+        label: Manual deployment
+        value: none
+        icon: 👋
+
+  # Phase 7: Deployment
+  - id: deployment-target
+    name: Deployment Target
+    type: selection
+    prompt: |
+      Where will you deploy the application?
+    inputType: radio
+    options:
+      - id: vercel
+        label: Vercel
+        value: vercel
+        icon: ▲
+      - id: netlify
+        label: Netlify
+        value: netlify
+        icon: 🔷
+      - id: aws
+        label: AWS
+        value: aws
+        icon: ☁️
+      - id: gcp
+        label: Google Cloud
+        value: gcp
+        icon: 🌐
+      - id: azure
+        label: Azure
+        value: azure
+        icon: ☁️
+      - id: heroku
+        label: Heroku
+        value: heroku
+        icon: 🟣
+      - id: vps
+        label: VPS (DigitalOcean, Linode, etc.)
+        value: vps
+        icon: 🖥️
+
+  # Phase 8: Security
+  - id: security-needs
+    name: Security Requirements
+    type: selection
+    prompt: |
+      What security measures do you need?
+    inputType: checkboxes
+    options:
+      - id: env-management
+        label: Environment variable management
+        value: env-management
+        icon: 🔐
+      - id: secrets
+        label: Secrets management (Vault, etc.)
+        value: secrets
+        icon: 🔑
+      - id: dependency-scan
+        label: Dependency vulnerability scanning
+        value: dependency-scan
+        icon: 🔍
+      - id: code-scan
+        label: Static code analysis
+        value: code-scan
+        icon: 🛡️
+      - id: ssl
+        label: SSL certificate management
+        value: ssl
+        icon: 🔒
+      - id: auth
+        label: Authentication system
+        value: auth
+        icon: 👤
+
+  # Phase 9: Review
+  - id: complete
+    name: Workspace Ready
+    type: review
+    prompt: |
+      🚀 **{{answers.project-name}} Workspace Configuration Complete!**
+      
+      **Stack:** {{answers.framework}} + {{answers.styling}}
+      **Team Size:** {{answers.team-size}}
+      **Git:** {{answers.git-provider}} with {{answers.git-workflow}}
+      **Deployment:** {{answers.deployment-target}}
+      
+      **Development Tools:**
+      {{#each answers.dev-tools}}
+      • {{this}}
+      {{/each}}
+      
+      **I'll generate:**
+      1. Complete project structure
+      2. Configuration files (package.json, tsconfig, etc.)
+      3. Git workflow setup (.gitignore, hooks)
+      4. CI/CD pipeline configuration
+      5. Docker setup (if selected)
+      6. Documentation templates
+      7. VS Code workspace settings
+      
+      Ready to create your workspace? 💪
+    inputType: text
+
+outputs:
+  - id: project-structure
+    name: Project Structure
+    type: code
+    files:
+      - path: "{{answers.project-name}}/package.json"
+        generator: generatePackageJson
+      - path: "{{answers.project-name}}/.gitignore"
+        generator: generateGitignore
+      - path: "{{answers.project-name}}/README.md"
+        generator: generateReadme
+      
+  - id: dev-config
+    name: Development Configuration
+    type: config
+    files:
+      - path: "{{answers.project-name}}/tsconfig.json"
+        generator: generateTsConfig
+      - path: "{{answers.project-name}}/.eslintrc.json"
+        generator: generateEslintConfig
+      - path: "{{answers.project-name}}/.prettierrc"
+        generator: generatePrettierConfig
+      - path: "{{answers.project-name}}/.vscode/settings.json"
+        generator: generateVSCodeSettings
+        
+  - id: ci-cd-config
+    name: CI/CD Configuration
+    type: config
+    files:
+      - path: "{{answers.project-name}}/.github/workflows/main.yml"
+        generator: generateGitHubActions
+      - path: "{{answers.project-name}}/Dockerfile"
+        generator: generateDockerfile
+      - path: "{{answers.project-name}}/docker-compose.yml"
+        generator: generateDockerCompose
+        
+  - id: documentation
+    name: Documentation
+    type: documentation
+    files:
+      - path: "{{answers.project-name}}/docs/CONTRIBUTING.md"
+        generator: generateContributing
+      - path: "{{answers.project-name}}/docs/SETUP.md"
+        generator: generateSetupGuide
+      - path: "{{answers.project-name}}/docs/DEPLOYMENT.md"
+        generator: generateDeploymentGuide

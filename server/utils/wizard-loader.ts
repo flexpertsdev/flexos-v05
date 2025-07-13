@@ -9,34 +9,53 @@ const wizardCache = new Map<string, WizardConfig>()
 /**
  * Get the wizards directory path
  */
-function getWizardsPath(): string {
+async function getWizardsPath(): Promise<string | null> {
+  const { existsSync } = await import('fs')
+  
   // In production, wizards might be in a different location
   const isDev = process.env.NODE_ENV === 'development'
   
   // Try multiple possible locations
   const possiblePaths = isDev 
-    ? [join(process.cwd(), 'wizards')]
-    : [
-        join(process.cwd(), '.output', 'public', 'wizards'),
-        join(process.cwd(), 'public', 'wizards'),
+    ? [
         join(process.cwd(), 'wizards'),
-        join(process.cwd(), '.output', 'wizards')
+        join(process.cwd(), 'public', 'wizards')
+      ]
+    : [
+        join(process.cwd(), 'public', 'wizards'),
+        join(process.cwd(), '.output', 'public', 'wizards'),
+        join(process.cwd(), 'wizards'),
+        join(process.cwd(), '.output', 'wizards'),
+        join(process.cwd(), '.output', 'server', 'wizards')
       ]
   
-  // Return the first valid path or default
-  return possiblePaths[0]
+  // Find the first valid path
+  for (const path of possiblePaths) {
+    if (existsSync(path)) {
+      console.log(`[Wizard Loader] Found wizard directory at: ${path}`)
+      return path
+    }
+  }
+  
+  console.warn('[Wizard Loader] No wizard directory found in any of:', possiblePaths)
+  return null
 }
 
 /**
  * Load all available wizards
  */
 export async function getWizardList(): Promise<WizardConfig[]> {
-  const wizardsPath = getWizardsPath()
+  const wizardsPath = await getWizardsPath()
+  
+  if (!wizardsPath) {
+    console.log('[Wizard Loader] No wizard directory found, using default wizards')
+    return getDefaultWizards()
+  }
+  
   const wizards: WizardConfig[] = []
   
   try {
     const files = await readdir(wizardsPath)
-    console.log(`[Wizard Loader] Found wizard directory at: ${wizardsPath}`)
     console.log(`[Wizard Loader] Files found: ${files.join(', ')}`)
     
     for (const file of files) {
@@ -50,9 +69,7 @@ export async function getWizardList(): Promise<WizardConfig[]> {
       }
     }
   } catch (error) {
-    console.warn('[Wizard Loader] Wizards directory not found, using default wizards')
-    console.warn(`[Wizard Loader] Attempted path: ${wizardsPath}`)
-    console.warn(`[Wizard Loader] Error: ${error}`)
+    console.warn('[Wizard Loader] Error reading wizard directory:', error)
     // Return default wizards if directory doesn't exist
     return getDefaultWizards()
   }
@@ -75,21 +92,23 @@ export async function getWizardConfig(wizardId: string): Promise<WizardConfig | 
     return wizardCache.get(wizardId)!
   }
   
-  const wizardsPath = getWizardsPath()
+  const wizardsPath = await getWizardsPath()
   
-  // Try different file extensions
-  const extensions = ['.yaml', '.yml', '.json']
-  
-  for (const ext of extensions) {
-    try {
-      const filePath = join(wizardsPath, wizardId + ext)
-      const wizard = await loadWizardFile(filePath, wizardId)
-      if (wizard) {
-        wizardCache.set(wizardId, wizard)
-        return wizard
+  if (wizardsPath) {
+    // Try different file extensions
+    const extensions = ['.yaml', '.yml', '.json']
+    
+    for (const ext of extensions) {
+      try {
+        const filePath = join(wizardsPath, wizardId + ext)
+        const wizard = await loadWizardFile(filePath, wizardId)
+        if (wizard) {
+          wizardCache.set(wizardId, wizard)
+          return wizard
+        }
+      } catch (error) {
+        // File doesn't exist, try next extension
       }
-    } catch (error) {
-      // File doesn't exist, try next extension
     }
   }
   
@@ -101,6 +120,7 @@ export async function getWizardConfig(wizardId: string): Promise<WizardConfig | 
     return defaultWizard
   }
   
+  console.warn(`[Wizard Loader] Wizard not found: ${wizardId}`)
   return null
 }
 

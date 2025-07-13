@@ -1,0 +1,262 @@
+id: flexfluencer
+name: Become a Flexfluencer
+description: Join our influencer program and earn money by promoting apps
+icon: 💰
+category: business
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 5
+
+phases:
+  - id: welcome
+    name: Welcome
+    type: question
+    prompt: |
+      Welcome to the Flexfluencer Program! 🚀
+      
+      As a Flexfluencer, you'll earn money by promoting amazing apps built by our community.
+      
+      Let's start with your name. What should we call you?
+    inputType: text
+    validation:
+      required: true
+      minLength: 2
+      message: Please enter your name
+
+  - id: audience-size
+    name: Audience Size
+    type: selection
+    prompt: |
+      Great to meet you, {{answers.welcome}}! 
+      
+      To help us understand your reach, what's the size of your audience across all platforms?
+    inputType: radio
+    options:
+      - id: starter
+        label: "1K - 10K followers"
+        value: starter
+        icon: 🌱
+      - id: growing
+        label: "10K - 50K followers"
+        value: growing
+        icon: 🌿
+      - id: established
+        label: "50K - 100K followers"
+        value: established
+        icon: 🌳
+      - id: influencer
+        label: "100K+ followers"
+        value: influencer
+        icon: 🌲
+
+  - id: platforms
+    name: Platforms
+    type: selection
+    prompt: Which platforms do you actively create content on?
+    helpText: Select all that apply
+    inputType: checkboxes
+    options:
+      - id: instagram
+        label: Instagram
+        value: instagram
+        icon: 📷
+      - id: tiktok
+        label: TikTok
+        value: tiktok
+        icon: 🎵
+      - id: youtube
+        label: YouTube
+        value: youtube
+        icon: 📺
+      - id: twitter
+        label: Twitter/X
+        value: twitter
+        icon: 🐦
+      - id: linkedin
+        label: LinkedIn
+        value: linkedin
+        icon: 💼
+      - id: blog
+        label: Blog/Website
+        value: blog
+        icon: 📝
+      - id: podcast
+        label: Podcast
+        value: podcast
+        icon: 🎙️
+
+  - id: content-type
+    name: Content Type
+    type: selection
+    prompt: What type of content do you primarily create?
+    inputType: checkboxes
+    options:
+      - id: tech-reviews
+        label: Tech Reviews
+        value: tech-reviews
+        icon: 💻
+      - id: tutorials
+        label: Tutorials & How-tos
+        value: tutorials
+        icon: 📚
+      - id: lifestyle
+        label: Lifestyle & Productivity
+        value: lifestyle
+        icon: ✨
+      - id: business
+        label: Business & Entrepreneurship
+        value: business
+        icon: 💼
+      - id: gaming
+        label: Gaming
+        value: gaming
+        icon: 🎮
+      - id: education
+        label: Education
+        value: education
+        icon: 🎓
+      - id: entertainment
+        label: Entertainment
+        value: entertainment
+        icon: 🎬
+
+  - id: promotion-style
+    name: Promotion Style
+    type: question
+    prompt: |
+      How do you typically promote products or services to your audience?
+      
+      Share your approach and what makes your promotions effective.
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 50
+      message: Please share at least 50 characters about your promotion style
+
+  - id: social-links
+    name: Social Links
+    type: question
+    prompt: |
+      Please share your main social media profile link where we can see your work.
+      
+      This helps us verify your audience and content quality.
+    helpText: Share your most active platform (e.g., https://instagram.com/yourhandle)
+    inputType: url
+    validation:
+      required: true
+      url: true
+      message: Please enter a valid URL
+
+  - id: contact
+    name: Contact Information
+    type: form
+    prompt: |
+      Almost done! We just need your contact information.
+      
+      This is how we'll reach out about opportunities and send your earnings.
+    inputType: form
+    inputs:
+      - id: email
+        label: Email Address
+        type: email
+        validation:
+          required: true
+          email: true
+          message: Please enter a valid email
+      - id: phone
+        label: Phone Number (Optional)
+        type: tel
+        validation:
+          required: false
+          pattern: '^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$'
+          message: Please enter a valid phone number
+      - id: paypal
+        label: PayPal Email (for payments)
+        type: email
+        validation:
+          required: true
+          email: true
+          message: Please enter your PayPal email
+
+  - id: terms
+    name: Terms & Conditions
+    type: selection
+    prompt: |
+      By joining the Flexfluencer program, you agree to:
+      
+      ✅ Create authentic content about apps you genuinely like
+      ✅ Disclose your partnership with FlexOS in your content
+      ✅ Follow FTC guidelines for sponsored content
+      ✅ Maintain the quality standards of your content
+      ✅ Provide honest reviews and feedback
+      
+      Do you agree to these terms?
+    inputType: radio
+    options:
+      - id: agree
+        label: "Yes, I agree to the terms"
+        value: true
+        icon: ✅
+      - id: disagree
+        label: "No, I need to think about it"
+        value: false
+        icon: ❌
+        branchTo: exit
+
+  - id: complete
+    name: Application Complete
+    type: review
+    prompt: |
+      🎉 Congratulations {{answers.welcome}}!
+      
+      Your Flexfluencer application has been submitted successfully.
+      
+      **What happens next:**
+      - We'll review your application within 24-48 hours
+      - You'll receive an email with your approval status
+      - Once approved, you'll get access to our app marketplace
+      - Start earning 20-50% commission on each app sale you generate!
+      
+      **Your earning potential:**
+      Based on your audience size ({{answers.audience-size}}), you could earn:
+      - $500 - $2,000 per month promoting 3-5 apps
+      - Higher commissions for exclusive partnerships
+      - Bonus rewards for top performers
+      
+      Welcome to the Flexfluencer family! 🚀
+    inputType: text
+
+  - id: exit
+    name: Come Back Soon
+    type: review
+    prompt: |
+      No problem! Take your time to review our terms.
+      
+      The Flexfluencer program is here whenever you're ready to start earning by sharing great apps with your audience.
+      
+      Feel free to return to this wizard anytime to complete your application.
+      
+      Have questions? Email us at flexfluencer@flexos.com
+    inputType: text
+
+outputs:
+  - id: flexfluencer-application
+    name: Flexfluencer Application
+    type: database
+    table: flexfluencer_applications
+    data:
+      name: "{{answers.welcome}}"
+      audience_size: "{{answers.audience-size}}"
+      platforms: "{{answers.platforms}}"
+      content_types: "{{answers.content-type}}"
+      promotion_style: "{{answers.promotion-style}}"
+      social_link: "{{answers.social-links}}"
+      email: "{{answers.contact.email}}"
+      phone: "{{answers.contact.phone}}"
+      paypal_email: "{{answers.contact.paypal}}"
+      agreed_to_terms: "{{answers.terms}}"
+      applied_at: "{{timestamp}}"
+      status: "pending"

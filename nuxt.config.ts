@@ -48,6 +48,13 @@ export default defineNuxtConfig({
   },
 
   nitro: {
-    preset: 'netlify'
+    preset: 'netlify',
+    publicAssets: [
+      {
+        baseURL: '/wizards',
+        dir: 'public/wizards',
+        maxAge: 60 * 60 * 24 * 7 // 1 week
+      }
+    ]
   }
 })

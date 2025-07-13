@@ -1,0 +1,350 @@
+id: debug-wizard
+name: Debug Wizard
+description: Systematically diagnose and fix layout issues, responsive problems, and component inconsistencies
+icon: 🔍
+category: debug
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 10
+
+phases:
+  # Phase 1: Problem Identification
+  - id: issue-type
+    name: Issue Type
+    type: selection
+    prompt: |
+      I'll help you debug the issue! 🔍
+      
+      Let's start by understanding what's wrong. What type of issue are you experiencing?
+    inputType: checkboxes
+    options:
+      - id: layout-breaking
+        label: Layout breaking at certain screen sizes
+        value: layout-breaking
+        icon: 💔
+      - id: alignment
+        label: Components not aligning properly
+        value: alignment
+        icon: 📐
+      - id: scrollbars
+        label: Unexpected scrollbars appearing
+        value: scrollbars
+        icon: 📜
+      - id: overflow
+        label: Content overflowing containers
+        value: overflow
+        icon: 📦
+      - id: spacing
+        label: Inconsistent spacing/sizing
+        value: spacing
+        icon: 📏
+      - id: inconsistent
+        label: Components look different on different pages
+        value: inconsistent
+        icon: 🎭
+      - id: responsive
+        label: Responsive behavior not working
+        value: responsive
+        icon: 📱
+      - id: performance
+        label: Performance/rendering issues
+        value: performance
+        icon: 🐌
+
+  - id: issue-location
+    name: Issue Location
+    type: question
+    prompt: |
+      Where exactly is the issue occurring? Be as specific as possible.
+      
+      Examples:
+      • Page: /products, Component: ProductCard, Screen: Mobile
+      • Page: /dashboard, Section: Sidebar, Browser: Safari
+      • Component: Header, Issue appears at 768px breakpoint
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 20
+      message: Please describe where the issue is happening
+
+  - id: when-started
+    name: When It Started
+    type: selection
+    prompt: |
+      When did this issue first appear?
+    inputType: radio
+    options:
+      - id: always
+        label: It's always been broken
+        value: always
+        icon: 🔄
+      - id: recent-change
+        label: After a recent change
+        value: recent-change
+        icon: 🆕
+      - id: specific-breakpoint
+        label: Only at certain screen sizes
+        value: specific-breakpoint
+        icon: 📏
+      - id: specific-browser
+        label: Only in specific browsers
+        value: specific-browser
+        icon: 🌐
+      - id: unknown
+        label: Not sure when it started
+        value: unknown
+        icon: 🤷
+
+  # Phase 2: Visual Evidence
+  - id: visual-evidence
+    name: Visual Evidence
+    type: selection
+    prompt: |
+      Can you provide visual evidence of the issue?
+      
+      This helps me understand exactly what's wrong.
+    inputType: checkboxes
+    options:
+      - id: screenshot-issue
+        label: I can provide a screenshot of the issue
+        value: screenshot-issue
+        icon: 📸
+      - id: screenshot-expected
+        label: I have a mockup/screenshot of expected behavior
+        value: screenshot-expected
+        icon: 🎯
+      - id: dev-tools
+        label: I can share DevTools console errors
+        value: dev-tools
+        icon: 🛠️
+      - id: code-snippet
+        label: I'll share the relevant code
+        value: code-snippet
+        icon: 💻
+      - id: live-url
+        label: I can provide a live URL
+        value: live-url
+        icon: 🔗
+
+  - id: describe-issue
+    name: Issue Description
+    type: question
+    prompt: |
+      Describe what you're seeing vs. what you expect to see.
+      
+      For example:
+      • "The sidebar overlaps content on tablets"
+      • "Cards are different sizes when they should match"
+      • "Footer sticks to viewport instead of content"
+    inputType: textarea
+    validation:
+      required: true
+      minLength: 30
+      message: Please describe the visual issue
+
+  # Phase 3: Technical Analysis
+  - id: browser-info
+    name: Browser Information
+    type: selection
+    prompt: |
+      Which browsers show this issue?
+    inputType: checkboxes
+    options:
+      - id: chrome
+        label: Chrome/Edge
+        value: chrome
+        icon: 🌐
+      - id: safari
+        label: Safari
+        value: safari
+        icon: 🧭
+      - id: firefox
+        label: Firefox
+        value: firefox
+        icon: 🦊
+      - id: mobile-ios
+        label: iOS Safari (iPhone/iPad)
+        value: mobile-ios
+        icon: 📱
+      - id: mobile-android
+        label: Android Chrome
+        value: mobile-android
+        icon: 🤖
+      - id: all
+        label: All browsers
+        value: all
+        icon: 🌍
+
+  - id: framework-details
+    name: Framework Details
+    type: selection
+    prompt: |
+      What framework/libraries are involved?
+    inputType: checkboxes
+    options:
+      - id: vue3
+        label: Vue 3
+        value: vue3
+        icon: 💚
+      - id: nuxt
+        label: Nuxt 3
+        value: nuxt
+        icon: 🟩
+      - id: tailwind
+        label: Tailwind CSS
+        value: tailwind
+        icon: 🎨
+      - id: css-modules
+        label: CSS Modules
+        value: css-modules
+        icon: 📦
+      - id: styled-components
+        label: CSS-in-JS
+        value: styled-components
+        icon: 💅
+      - id: bootstrap
+        label: Bootstrap/UI Library
+        value: bootstrap
+        icon: 🅱️
+
+  # Phase 4: Common Issues Check
+  - id: common-issues
+    name: Common Issues Check
+    type: selection
+    prompt: |
+      Let me check for common issues. Do any of these sound familiar?
+    inputType: checkboxes
+    options:
+      - id: viewport-units
+        label: Using 100vh on mobile (doesn't account for browser UI)
+        value: viewport-units
+        icon: 📱
+      - id: fixed-heights
+        label: Fixed pixel heights causing overflow
+        value: fixed-heights
+        icon: 📏
+      - id: z-index
+        label: Z-index conflicts (elements on wrong layer)
+        value: z-index
+        icon: 🎯
+      - id: flexbox-overflow
+        label: Flexbox children overflowing parent
+        value: flexbox-overflow
+        icon: 📦
+      - id: grid-implicit
+        label: CSS Grid creating unexpected rows/columns
+        value: grid-implicit
+        icon: 🎲
+      - id: position-context
+        label: Position absolute without relative parent
+        value: position-context
+        icon: 📍
+      - id: box-sizing
+        label: Box-sizing issues (padding affecting width)
+        value: box-sizing
+        icon: 📦
+
+  # Phase 5: Solution Approach
+  - id: tried-solutions
+    name: Attempted Solutions
+    type: question
+    prompt: |
+      What have you already tried to fix this issue?
+      
+      This helps me avoid suggesting things you've already attempted.
+    inputType: textarea
+    validation:
+      required: false
+      minLength: 0
+
+  - id: fix-preference
+    name: Fix Preference
+    type: selection
+    prompt: |
+      How would you prefer to fix this issue?
+    inputType: radio
+    options:
+      - id: quick-fix
+        label: Quick fix - Just make it work for now
+        value: quick-fix
+        icon: 🚑
+      - id: proper-fix
+        label: Proper fix - Refactor to prevent future issues
+        value: proper-fix
+        icon: 🏗️
+      - id: understand
+        label: Understand first - Explain what's wrong before fixing
+        value: understand
+        icon: 🎓
+      - id: best-practice
+        label: Best practice - Show me the right way to do this
+        value: best-practice
+        icon: ⭐
+
+  # Phase 6: Analysis Results
+  - id: analysis-complete
+    name: Analysis Complete
+    type: review
+    prompt: |
+      🔍 **Debug Analysis Complete**
+      
+      **Issue Type:** {{answers.issue-type}}
+      **Location:** {{answers.issue-location}}
+      **Browsers Affected:** {{answers.browser-info}}
+      
+      **Common Issues Detected:**
+      {{#each answers.common-issues}}
+      • {{this}}
+      {{/each}}
+      
+      **My Diagnosis:**
+      Based on your description, this appears to be a layout calculation issue, likely caused by:
+      
+      1. **Viewport units on mobile** - Using 100vh doesn't account for browser UI
+      2. **Fixed positioning conflicts** - Multiple fixed elements competing for space
+      3. **Missing overflow handling** - Content has nowhere to go when constrained
+      
+      **I'll provide:**
+      1. Immediate fix to stop the issue
+      2. Proper refactor for long-term stability
+      3. Best practices to prevent recurrence
+      4. Test cases to verify the fix
+      
+      Ready to see the solutions? 🚀
+    inputType: text
+
+outputs:
+  - id: debug-fix
+    name: Debug Fix
+    type: code
+    files:
+      - path: "fixes/{{answers.issue-location}}-fix.css"
+        generator: generateCSSFix
+      - path: "fixes/{{answers.issue-location}}-fix.vue"
+        generator: generateComponentFix
+      
+  - id: refactor-solution
+    name: Refactored Solution
+    type: code
+    files:
+      - path: "refactored/{{answers.issue-location}}-refactored.vue"
+        generator: generateRefactoredComponent
+        
+  - id: test-cases
+    name: Test Cases
+    type: code
+    files:
+      - path: "tests/{{answers.issue-location}}-responsive.test.ts"
+        generator: generateResponsiveTests
+        
+  - id: documentation
+    name: Debug Documentation
+    type: documentation
+    files:
+      - path: "docs/debug/{{answers.issue-type}}-fix.md"
+        generator: generateDebugDocs
+      - path: "docs/best-practices/{{answers.issue-type}}-prevention.md"
+        generator: generatePreventionGuide

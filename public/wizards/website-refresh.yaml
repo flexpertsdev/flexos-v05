@@ -1,0 +1,201 @@
+id: website-refresh
+name: Website Refresh Wizard
+description: Analyze and refresh your website with AI-powered improvements
+icon: 🔄
+category: project
+version: 1.0.0
+
+settings:
+  allowBackNavigation: true
+  saveProgress: true
+  estimatedTime: 10
+
+phases:
+  - id: intro
+    name: Introduction
+    type: question
+    prompt: |
+      Welcome to the Website Refresh Wizard! 🎨
+      
+      I'll help you analyze and improve your website for better compliance, performance, and user experience.
+      
+      What's the URL of the website you'd like to refresh?
+    helpText: Enter the full URL including https://
+    inputType: url
+    validation:
+      required: true
+      url: true
+      message: Please enter a valid URL starting with http:// or https://
+
+  - id: analysis
+    name: Website Analysis
+    type: analysis
+    prompt: |
+      Great! Let me analyze your website for:
+      - EAA/WCAG compliance issues
+      - Performance bottlenecks
+      - Mobile responsiveness
+      - SEO opportunities
+      - Design improvements
+      
+      This will take a moment...
+    inputType: text
+    aiConfig:
+      enabled: true
+      analysisType: website
+      model: gpt-4-turbo-preview
+      temperature: 0.3
+      maxTokens: 2000
+
+  - id: improvements
+    name: Select Improvements
+    type: selection
+    prompt: |
+      Based on my analysis, here are the areas we can improve.
+      
+      Which improvements would you like to implement?
+    inputType: checkboxes
+    options:
+      - id: compliance
+        label: Fix EAA/WCAG compliance issues
+        value: compliance
+        icon: ♿
+        description: Ensure your site meets accessibility standards
+      - id: performance
+        label: Improve site performance
+        value: performance
+        icon: 🚀
+        description: Optimize loading speed and Core Web Vitals
+      - id: mobile
+        label: Enhance mobile experience
+        value: mobile
+        icon: 📱
+        description: Better responsive design and touch interactions
+      - id: seo
+        label: Optimize for search engines
+        value: seo
+        icon: 🔍
+        description: Improve visibility in search results
+      - id: design
+        label: Modernize design
+        value: design
+        icon: 🎨
+        description: Update visual design and user experience
+
+  - id: style
+    name: Choose Design Style
+    type: selection
+    prompt: |
+      Now let's choose a design direction for your refreshed website.
+      
+      Select the style that best fits your brand:
+    inputType: style-grid
+    options:
+      - id: minimal
+        label: Minimal & Clean
+        value: minimal
+        icon: ⚪
+        description: Simple, elegant, and focused on content
+        metadata:
+          primary: '#000000'
+          secondary: '#FFFFFF'
+          accent: '#0066CC'
+      - id: bold
+        label: Bold & Vibrant
+        value: bold
+        icon: 🔴
+        description: Eye-catching colors and strong contrasts
+        metadata:
+          primary: '#FF0066'
+          secondary: '#000000'
+          accent: '#FFCC00'
+      - id: elegant
+        label: Elegant & Sophisticated
+        value: elegant
+        icon: 👑
+        description: Refined typography and subtle animations
+        metadata:
+          primary: '#2C3E50'
+          secondary: '#ECF0F1'
+          accent: '#E74C3C'
+      - id: playful
+        label: Playful & Fun
+        value: playful
+        icon: 🎨
+        description: Friendly, approachable, with personality
+        metadata:
+          primary: '#9B59B6'
+          secondary: '#3498DB'
+          accent: '#F39C12'
+
+  - id: features
+    name: Additional Features
+    type: selection
+    prompt: |
+      Would you like to add any of these modern features to your website?
+    inputType: checkboxes
+    options:
+      - id: pwa
+        label: Progressive Web App
+        value: pwa
+        icon: 📱
+        description: Install as mobile app, work offline
+      - id: darkmode
+        label: Dark Mode
+        value: darkmode
+        icon: 🌙
+        description: Automatic light/dark theme switching
+      - id: animations
+        label: Smooth Animations
+        value: animations
+        icon: ✨
+        description: Subtle animations for better UX
+      - id: chat
+        label: AI Chat Support
+        value: chat
+        icon: 💬
+        description: Integrated customer support chat
+      - id: analytics
+        label: Privacy-First Analytics
+        value: analytics
+        icon: 📊
+        description: Track visitors without cookies
+
+  - id: review
+    name: Review & Generate
+    type: review
+    prompt: |
+      Perfect! Here's what I'll create for you:
+      
+      ✅ A refreshed website with your selected improvements
+      ✅ Fully compliant with accessibility standards
+      ✅ Optimized for performance and SEO
+      ✅ Beautiful {{style}} design
+      ✅ Mobile-first responsive layout
+      
+      Ready to generate your new website?
+    inputType: text
+
+outputs:
+  - id: website
+    name: Refreshed Website
+    type: code
+    files:
+      - path: index.html
+        template: website-template.html
+        generator: generateHTML
+      - path: styles.css
+        template: website-styles.css
+        generator: generateCSS
+      - path: script.js
+        template: website-script.js
+        generator: generateJS
+      - path: README.md
+        generator: generateReadme
+
+  - id: report
+    name: Improvement Report
+    type: documentation
+    files:
+      - path: improvement-report.md
+        generator: generateReport
