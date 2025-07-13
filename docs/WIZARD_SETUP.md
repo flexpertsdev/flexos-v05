@@ -37,7 +37,7 @@ ANTHROPIC_API_KEY=your_anthropic_api_key_here
 
 2. Edit `.env` and add your API keys:
    ```bash
-   OPENAI_API_KEY=sk-...your-actual-key...
+   OPENAI_API_KEY=your-openai-api-key-here
    ```
 
 3. Restart your development server
