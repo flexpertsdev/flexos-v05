@@ -49,11 +49,11 @@ export default defineNuxtConfig({
 
   nitro: {
     preset: 'netlify',
-    publicAssets: [
+    // Remove public assets for wizards since they're now bundled
+    serverAssets: [
       {
-        baseURL: '/wizards',
-        dir: 'public/wizards',
-        maxAge: 60 * 60 * 24 * 7 // 1 week
+        baseName: 'wizards',
+        dir: './wizards'
       }
     ]
   }

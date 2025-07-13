@@ -2,6 +2,7 @@ import { readdir, readFile } from 'fs/promises'
 import { join } from 'path'
 import { parse as parseYAML } from 'yaml'
 import type { WizardConfig } from '~/types/wizard'
+import { useStorage } from '#imports'
 
 // Cache for loaded wizards
 const wizardCache = new Map<string, WizardConfig>()
@@ -45,6 +46,48 @@ async function getWizardsPath(): Promise<string | null> {
  * Load all available wizards
  */
 export async function getWizardList(): Promise<WizardConfig[]> {
+  const isDev = process.env.NODE_ENV === 'development'
+  
+  // In production, use Nitro storage
+  if (!isDev) {
+    try {
+      const storage = useStorage('assets:wizards')
+      const keys = await storage.getKeys()
+      console.log(`[Wizard Loader] Found wizard files in storage: ${keys.join(', ')}`)
+      
+      const wizards: WizardConfig[] = []
+      
+      for (const key of keys) {
+        if (key.endsWith('.yaml') || key.endsWith('.yml') || key.endsWith('.json')) {
+          const content = await storage.getItem(key) as string
+          const wizardId = key.replace(/\.(yaml|yml|json)$/, '')
+          
+          let config: any
+          if (key.endsWith('.json')) {
+            config = JSON.parse(content)
+          } else {
+            config = parseYAML(content)
+          }
+          
+          if (!config.id) {
+            config.id = wizardId
+          }
+          
+          if (validateWizardConfig(config)) {
+            wizards.push(config as WizardConfig)
+            console.log(`[Wizard Loader] Loaded wizard from storage: ${wizardId}`)
+          }
+        }
+      }
+      
+      return wizards.length > 0 ? wizards : getDefaultWizards()
+    } catch (error) {
+      console.warn('[Wizard Loader] Error loading from storage:', error)
+      return getDefaultWizards()
+    }
+  }
+  
+  // In development, use filesystem
   const wizardsPath = await getWizardsPath()
   
   if (!wizardsPath) {
@@ -92,22 +135,63 @@ export async function getWizardConfig(wizardId: string): Promise<WizardConfig | 
     return wizardCache.get(wizardId)!
   }
   
-  const wizardsPath = await getWizardsPath()
+  const isDev = process.env.NODE_ENV === 'development'
   
-  if (wizardsPath) {
-    // Try different file extensions
-    const extensions = ['.yaml', '.yml', '.json']
-    
-    for (const ext of extensions) {
-      try {
-        const filePath = join(wizardsPath, wizardId + ext)
-        const wizard = await loadWizardFile(filePath, wizardId)
-        if (wizard) {
-          wizardCache.set(wizardId, wizard)
-          return wizard
+  // In production, use Nitro storage
+  if (!isDev) {
+    try {
+      const storage = useStorage('assets:wizards')
+      const extensions = ['.yaml', '.yml', '.json']
+      
+      for (const ext of extensions) {
+        try {
+          const key = `${wizardId}${ext}`
+          const content = await storage.getItem(key) as string
+          
+          if (content) {
+            let config: any
+            if (ext === '.json') {
+              config = JSON.parse(content)
+            } else {
+              config = parseYAML(content)
+            }
+            
+            if (!config.id) {
+              config.id = wizardId
+            }
+            
+            if (validateWizardConfig(config)) {
+              wizardCache.set(wizardId, config as WizardConfig)
+              console.log(`[Wizard Loader] Loaded wizard from storage: ${wizardId}`)
+              return config as WizardConfig
+            }
+          }
+        } catch (error) {
+          // Try next extension
         }
-      } catch (error) {
-        // File doesn't exist, try next extension
+      }
+    } catch (error) {
+      console.warn('[Wizard Loader] Error loading from storage:', error)
+    }
+  } else {
+    // In development, use filesystem
+    const wizardsPath = await getWizardsPath()
+    
+    if (wizardsPath) {
+      // Try different file extensions
+      const extensions = ['.yaml', '.yml', '.json']
+      
+      for (const ext of extensions) {
+        try {
+          const filePath = join(wizardsPath, wizardId + ext)
+          const wizard = await loadWizardFile(filePath, wizardId)
+          if (wizard) {
+            wizardCache.set(wizardId, wizard)
+            return wizard
+          }
+        } catch (error) {
+          // File doesn't exist, try next extension
+        }
       }
     }
   }
