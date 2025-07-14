@@ -1,56 +1,214 @@
 <template>
   <div class="features-panel">
-    <h2 class="panel-heading">Features</h2>
-    <div class="panel-content">
-      <p class="placeholder-text">Configure your app features and capabilities</p>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🔐</div>
-          <h3>Authentication</h3>
-          <p>User login and registration</p>
-          <label class="toggle">
-            <input type="checkbox" checked>
-            <span class="toggle-slider"></span>
-          </label>
+    <div class="panel-header">
+      <h2 class="panel-heading">Features</h2>
+      <div class="panel-actions">
+        <button @click="refreshFeatures" class="icon-btn" title="Refresh">
+          <svg viewBox="0 0 24 24" class="icon">
+            <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    
+    <div v-if="loading" class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading features...</p>
+    </div>
+    
+    <div v-else-if="error" class="error-state">
+      <p>Error loading features: {{ error }}</p>
+      <button @click="loadFeatures" class="retry-btn">Retry</button>
+    </div>
+    
+    <div v-else class="features-list">
+      <!-- Feature Cards -->
+      <div 
+        v-for="feature in features" 
+        :key="feature.id"
+        @click="openFeature(feature)" 
+        class="feature-card"
+      >
+        <div class="feature-header">
+          <div class="feature-icon" :class="getStatusClass(feature)">
+            <svg v-if="feature.status === 'completed'" class="icon" viewBox="0 0 24 24">
+              <path d="M9 12l2 2 4-4"/>
+              <circle cx="12" cy="12" r="10"/>
+            </svg>
+            <svg v-else-if="feature.status === 'active'" class="icon" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <svg v-else class="icon" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <div class="feature-info">
+            <h3 class="feature-title">{{ feature.name }}</h3>
+            <p class="feature-description">{{ feature.description || 'No description provided' }}</p>
+          </div>
+          <span class="priority-badge" :class="feature.priority">{{ formatPriority(feature.priority) }}</span>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">💾</div>
-          <h3>Database</h3>
-          <p>Data storage and retrieval</p>
-          <label class="toggle">
-            <input type="checkbox" checked>
-            <span class="toggle-slider"></span>
-          </label>
+        <div v-if="getProgress(feature) !== null" class="feature-progress">
+          <div class="progress-bar">
+            <div class="progress-fill" :style="{ width: getProgress(feature) + '%' }"></div>
+          </div>
+          <span class="progress-text">{{ getProgressText(feature) }}</span>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon">📧</div>
-          <h3>Email</h3>
-          <p>Send transactional emails</p>
-          <label class="toggle">
-            <input type="checkbox">
-            <span class="toggle-slider"></span>
-          </label>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">💳</div>
-          <h3>Payments</h3>
-          <p>Accept online payments</p>
-          <label class="toggle">
-            <input type="checkbox">
-            <span class="toggle-slider"></span>
-          </label>
+        <div v-if="feature.category || feature.type" class="feature-meta">
+          <span v-if="feature.category" class="meta-tag">{{ feature.category }}</span>
+          <span v-if="feature.type" class="meta-tag">{{ feature.type }}</span>
         </div>
       </div>
+
+      <!-- Empty state if no features -->
+      <div v-if="features.length === 0" class="empty-state-card">
+        <svg viewBox="0 0 24 24" class="empty-icon">
+          <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+        </svg>
+        <h3>No features yet</h3>
+        <p>Start by adding your first feature</p>
+      </div>
+
+      <!-- Add New Feature Button -->
+      <button @click="addNewFeature" class="add-feature-btn">
+        <svg class="icon" viewBox="0 0 24 24">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        <span>Add New Feature</span>
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import type { Database } from '~/types/database'
+
+type Project = Database['public']['Tables']['projects']['Row']
+type Feature = Database['public']['Tables']['features']['Row']
+
 interface Props {
-  project?: any
+  project?: Project | null
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits(['select:feature', 'add:feature'])
+
+const supabase = useSupabase()
+const features = ref<Feature[]>([])
+const loading = ref(true)
+const error = ref('')
+
+// Load features from database
+const loadFeatures = async () => {
+  if (!props.project?.id) return
+  
+  loading.value = true
+  error.value = ''
+  
+  try {
+    const { data, error: fetchError } = await supabase
+      .from('features')
+      .select('*')
+      .eq('project_id', props.project.id)
+      .order('priority', { ascending: false })
+      .order('created_at', { ascending: true })
+    
+    if (fetchError) throw fetchError
+    
+    features.value = data || []
+  } catch (err: any) {
+    error.value = err.message
+    console.error('Error loading features:', err)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Get status display class
+const getStatusClass = (feature: Feature) => {
+  return {
+    'completed': feature.status === 'completed' || feature.status === 'done',
+    'in-progress': feature.status === 'active' || feature.status === 'in-progress',
+    'planned': feature.status === 'planned' || feature.status === 'pending'
+  }
+}
+
+// Format priority display
+const formatPriority = (priority: string) => {
+  return priority.charAt(0).toUpperCase() + priority.slice(1)
+}
+
+// Get progress percentage from feature settings
+const getProgress = (feature: Feature) => {
+  const settings = feature.settings as any
+  if (feature.status === 'completed') return 100
+  if (feature.status === 'planned') return 0
+  return settings?.progress || null
+}
+
+// Get progress text
+const getProgressText = (feature: Feature) => {
+  const progress = getProgress(feature)
+  if (progress === null) return ''
+  if (progress === 100) return 'Completed'
+  if (progress === 0) return 'Not Started'
+  return `${progress}% Complete`
+}
+
+// Handle feature selection
+const openFeature = (feature: Feature) => {
+  emit('select:feature', feature)
+}
+
+// Add new feature
+const addNewFeature = () => {
+  emit('add:feature')
+}
+
+// Refresh features
+const refreshFeatures = () => {
+  loadFeatures()
+}
+
+// Load features on mount and when project changes
+onMounted(() => {
+  loadFeatures()
+})
+
+watch(() => props.project?.id, () => {
+  loadFeatures()
+})
+
+// Subscribe to real-time updates
+onMounted(() => {
+  if (!props.project?.id) return
+  
+  const channel = supabase
+    .channel(`features:${props.project.id}`)
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'features',
+        filter: `project_id=eq.${props.project.id}`
+      },
+      () => {
+        loadFeatures()
+      }
+    )
+    .subscribe()
+  
+  // Cleanup on unmount
+  onUnmounted(() => {
+    supabase.removeChannel(channel)
+  })
+})
 </script>
 
 <style scoped>
@@ -60,100 +218,275 @@ const props = defineProps<Props>()
   flex-direction: column;
 }
 
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
 .panel-heading {
   font-size: 1.5rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 1.5rem;
+  margin: 0;
 }
 
-.panel-content {
-  flex: 1;
-  overflow-y: auto;
+.panel-actions {
+  display: flex;
+  gap: 0.5rem;
 }
 
-.placeholder-text {
+.icon-btn {
+  background: transparent;
+  border: none;
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s;
 }
 
-.feature-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
+.icon-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--primary-500);
 }
 
-.feature-card {
-  background-color: var(--bg-secondary);
-  border: 1px solid var(--border-primary);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  position: relative;
+.icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
 }
 
-.feature-icon {
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-}
-
-.feature-card h3 {
-  color: var(--text-primary);
-  font-size: 1.125rem;
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.feature-card p {
+.loading-state,
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
   color: var(--text-tertiary);
-  font-size: 0.875rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-primary);
+  border-top-color: var(--primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
   margin-bottom: 1rem;
 }
 
-.toggle {
-  position: absolute;
-  top: 1.5rem;
-  right: 1.5rem;
-  display: inline-block;
-  width: 48px;
-  height: 24px;
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
-.toggle input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.toggle-slider {
-  position: absolute;
+.retry-btn {
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--border-primary);
-  transition: 0.4s;
-  border-radius: 24px;
+  margin-top: 1rem;
 }
 
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 16px;
-  width: 16px;
-  left: 4px;
-  bottom: 4px;
-  background-color: var(--text-tertiary);
-  transition: 0.4s;
+.features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  overflow-y: auto;
+  padding-bottom: 1rem;
+}
+
+.feature-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.feature-card:hover {
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-sm);
+}
+
+.feature-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.feature-icon {
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.toggle input:checked + .toggle-slider {
-  background-color: var(--primary-500);
+.feature-icon.completed {
+  background: rgba(22, 193, 129, 0.2);
+  color: var(--primary-500);
 }
 
-.toggle input:checked + .toggle-slider:before {
-  background-color: var(--text-primary);
-  transform: translateX(24px);
+.feature-icon.in-progress {
+  background: rgba(251, 191, 36, 0.2);
+  color: #FBBF24;
+}
+
+.feature-icon.planned {
+  background: rgba(139, 148, 158, 0.2);
+  color: var(--text-tertiary);
+}
+
+.feature-icon .icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.feature-info {
+  flex: 1;
+}
+
+.feature-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.feature-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.priority-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.priority-badge.high {
+  background: rgba(239, 68, 68, 0.2);
+  color: #EF4444;
+}
+
+.priority-badge.medium {
+  background: rgba(251, 191, 36, 0.2);
+  color: #FBBF24;
+}
+
+.priority-badge.low {
+  background: rgba(139, 148, 158, 0.2);
+  color: var(--text-secondary);
+}
+
+.feature-progress {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-500);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.add-feature-btn {
+  background: transparent;
+  border: 2px dashed var(--border-primary);
+  border-radius: 12px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.add-feature-btn:hover {
+  border-color: var(--primary-500);
+  background: var(--bg-secondary);
+  color: var(--primary-500);
+}
+
+.add-feature-btn .icon {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+}
+
+.feature-meta {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.meta-tag {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  border-radius: 4px;
+  text-transform: capitalize;
+}
+
+.empty-state-card {
+  text-align: center;
+  padding: 3rem;
+  color: var(--text-tertiary);
+}
+
+.empty-icon {
+  width: 48px;
+  height: 48px;
+  fill: currentColor;
+  margin-bottom: 1rem;
+}
+
+.empty-state-card h3 {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-state-card p {
+  font-size: 0.875rem;
+  margin: 0;
 }
 </style>

@@ -1,0 +1,1255 @@
+<template>
+  <div class="focus-mode" :class="{ 'is-mobile': isMobile }">
+    <!-- Header -->
+    <div class="focus-header">
+      <div class="focus-title">
+        <h1>Focus Mode</h1>
+        <p class="focus-subtitle">Deep work on a single task</p>
+      </div>
+      <div class="focus-controls">
+        <button @click="startNewSession" class="btn-primary">
+          <svg viewBox="0 0 24 24" class="icon">
+            <path d="M12 2v4m0 12v4m10-10h-4M6 12H2m15.364 6.364l-2.828-2.828M8.464 8.464L5.636 5.636m12.728 0l-2.828 2.828m-7.072 7.072l-2.828 2.828"/>
+          </svg>
+          New Session
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Focus Session -->
+    <div v-if="activeSession" class="active-session">
+      <div class="session-card">
+        <div class="session-header">
+          <div class="session-info">
+            <h2>{{ activeSession.task }}</h2>
+            <div class="session-meta">
+              <span class="session-type">{{ activeSession.type }}</span>
+              <span class="session-duration">{{ formatDuration(sessionDuration) }}</span>
+            </div>
+          </div>
+          <div class="session-actions">
+            <button @click="pauseSession" v-if="!isPaused" class="action-btn">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+              </svg>
+            </button>
+            <button @click="resumeSession" v-else class="action-btn">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+            <button @click="completeSession" class="action-btn success">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Focus Timer -->
+        <div class="focus-timer">
+          <svg class="timer-ring" viewBox="0 0 120 120">
+            <circle 
+              class="timer-ring-bg" 
+              cx="60" 
+              cy="60" 
+              r="54"
+              fill="none"
+              stroke-width="8"
+            />
+            <circle 
+              class="timer-ring-progress" 
+              cx="60" 
+              cy="60" 
+              r="54"
+              fill="none"
+              stroke-width="8"
+              :stroke-dasharray="339.292"
+              :stroke-dashoffset="timerOffset"
+            />
+          </svg>
+          <div class="timer-display">
+            <span class="timer-minutes">{{ Math.floor(remainingTime / 60) }}</span>
+            <span class="timer-separator">:</span>
+            <span class="timer-seconds">{{ String(remainingTime % 60).padStart(2, '0') }}</span>
+          </div>
+        </div>
+
+        <!-- Context & Notes -->
+        <div class="session-content">
+          <div class="content-section">
+            <h3>Context</h3>
+            <div class="context-items">
+              <div v-for="context in activeSession.contexts" :key="context.id" class="context-item">
+                <span class="context-icon">{{ getContextIcon(context.type) }}</span>
+                <span class="context-label">{{ context.label }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-section">
+            <h3>Session Notes</h3>
+            <textarea 
+              v-model="sessionNotes" 
+              @input="saveNotes"
+              placeholder="Record your thoughts, progress, and insights..."
+              class="notes-textarea"
+              rows="6"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session History -->
+    <div v-else class="session-history">
+      <h2 class="history-title">Recent Sessions</h2>
+      
+      <div v-if="recentSessions.length > 0" class="sessions-grid">
+        <div 
+          v-for="session in recentSessions" 
+          :key="session.id"
+          @click="viewSession(session)"
+          class="history-card"
+        >
+          <div class="history-header">
+            <h3>{{ session.task }}</h3>
+            <span class="history-duration">{{ formatDuration(session.duration) }}</span>
+          </div>
+          <div class="history-meta">
+            <span class="history-type">{{ session.type }}</span>
+            <span class="history-date">{{ formatDate(session.completed_at) }}</span>
+          </div>
+          <div v-if="session.notes" class="history-notes">
+            {{ truncateText(session.notes, 100) }}
+          </div>
+          <div class="history-stats">
+            <div class="stat">
+              <span class="stat-value">{{ session.outputs_count || 0 }}</span>
+              <span class="stat-label">Outputs</span>
+            </div>
+            <div class="stat">
+              <span class="stat-value">{{ session.focus_score || 0 }}%</span>
+              <span class="stat-label">Focus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="empty-history">
+        <svg viewBox="0 0 24 24" class="empty-icon">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+        </svg>
+        <p>No focus sessions yet</p>
+        <p class="empty-hint">Start your first deep work session to boost productivity</p>
+      </div>
+    </div>
+
+    <!-- New Session Modal -->
+    <Teleport to="body">
+      <div v-if="showNewSessionModal" class="modal-overlay" @click="closeNewSessionModal">
+        <div class="modal-content" @click.stop>
+          <div class="modal-header">
+            <h2>Start Focus Session</h2>
+            <button @click="closeNewSessionModal" class="close-btn">
+              <svg viewBox="0 0 24 24" class="icon">
+                <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+              </svg>
+            </button>
+          </div>
+
+          <form @submit.prevent="createSession" class="session-form">
+            <div class="form-group">
+              <label>What will you focus on?</label>
+              <input 
+                v-model="newSession.task" 
+                type="text" 
+                placeholder="e.g., Implement user authentication"
+                class="form-input"
+                required
+              >
+            </div>
+
+            <div class="form-group">
+              <label>Session Type</label>
+              <div class="type-options">
+                <label class="type-option">
+                  <input 
+                    type="radio" 
+                    v-model="newSession.type" 
+                    value="feature"
+                    name="sessionType"
+                  >
+                  <div class="type-card">
+                    <span class="type-icon">⚡</span>
+                    <span>Feature</span>
+                  </div>
+                </label>
+                <label class="type-option">
+                  <input 
+                    type="radio" 
+                    v-model="newSession.type" 
+                    value="bug"
+                    name="sessionType"
+                  >
+                  <div class="type-card">
+                    <span class="type-icon">🐛</span>
+                    <span>Bug Fix</span>
+                  </div>
+                </label>
+                <label class="type-option">
+                  <input 
+                    type="radio" 
+                    v-model="newSession.type" 
+                    value="refactor"
+                    name="sessionType"
+                  >
+                  <div class="type-card">
+                    <span class="type-icon">🔧</span>
+                    <span>Refactor</span>
+                  </div>
+                </label>
+                <label class="type-option">
+                  <input 
+                    type="radio" 
+                    v-model="newSession.type" 
+                    value="research"
+                    name="sessionType"
+                  >
+                  <div class="type-card">
+                    <span class="type-icon">🔍</span>
+                    <span>Research</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Duration</label>
+              <div class="duration-options">
+                <button 
+                  type="button"
+                  v-for="duration in durationOptions" 
+                  :key="duration.value"
+                  @click="newSession.duration = duration.value"
+                  :class="{ active: newSession.duration === duration.value }"
+                  class="duration-btn"
+                >
+                  {{ duration.label }}
+                </button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Add Context</label>
+              <div class="context-selector">
+                <button 
+                  type="button"
+                  @click="selectContext('page')"
+                  class="context-btn"
+                >
+                  <svg viewBox="0 0 24 24" class="icon">
+                    <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6z"/>
+                  </svg>
+                  Page
+                </button>
+                <button 
+                  type="button"
+                  @click="selectContext('feature')"
+                  class="context-btn"
+                >
+                  <svg viewBox="0 0 24 24" class="icon">
+                    <path d="M9 12l2 2 4-4M7.835 4.697a3 3 0 001.946.773H14.22a3 3 0 001.946-.773l1.368-1.196z"/>
+                  </svg>
+                  Feature
+                </button>
+                <button 
+                  type="button"
+                  @click="selectContext('journey')"
+                  class="context-btn"
+                >
+                  <svg viewBox="0 0 24 24" class="icon">
+                    <path d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53z"/>
+                  </svg>
+                  Journey
+                </button>
+              </div>
+              <div v-if="newSession.contexts.length > 0" class="selected-contexts">
+                <div 
+                  v-for="(context, index) in newSession.contexts" 
+                  :key="index"
+                  class="selected-context"
+                >
+                  <span>{{ context.label }}</span>
+                  <button 
+                    type="button"
+                    @click="removeContext(index)"
+                    class="remove-btn"
+                  >×</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="button" @click="closeNewSessionModal" class="btn-cancel">
+                Cancel
+              </button>
+              <button type="submit" class="btn-submit">
+                Start Session
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed, reactive, onMounted, onUnmounted } from 'vue'
+import type { Database } from '~/types/database'
+
+type Project = Database['public']['Tables']['projects']['Row']
+
+interface Props {
+  project?: Project | null
+  isMobile?: boolean
+}
+
+interface FocusSession {
+  id: string
+  task: string
+  type: 'feature' | 'bug' | 'refactor' | 'research'
+  duration: number
+  elapsed: number
+  contexts: Array<{ type: string; id: string; label: string }>
+  notes: string
+  started_at: string
+  completed_at?: string
+  outputs_count?: number
+  focus_score?: number
+}
+
+const props = defineProps<Props>()
+const supabase = useSupabase()
+
+// State
+const activeSession = ref<FocusSession | null>(null)
+const recentSessions = ref<FocusSession[]>([])
+const showNewSessionModal = ref(false)
+const isPaused = ref(false)
+const sessionNotes = ref('')
+const sessionDuration = ref(0)
+const remainingTime = ref(0)
+
+// Timer state
+let timerInterval: NodeJS.Timeout | null = null
+let notesTimeout: NodeJS.Timeout | null = null
+
+// New session form
+const newSession = reactive({
+  task: '',
+  type: 'feature' as FocusSession['type'],
+  duration: 25 * 60, // 25 minutes default
+  contexts: [] as Array<{ type: string; id: string; label: string }>
+})
+
+// Duration options
+const durationOptions = [
+  { label: '15 min', value: 15 * 60 },
+  { label: '25 min', value: 25 * 60 },
+  { label: '45 min', value: 45 * 60 },
+  { label: '60 min', value: 60 * 60 },
+  { label: '90 min', value: 90 * 60 }
+]
+
+// Computed
+const timerOffset = computed(() => {
+  if (!activeSession.value) return 339.292
+  const progress = remainingTime.value / activeSession.value.duration
+  return 339.292 * (1 - progress)
+})
+
+// Methods
+const startNewSession = () => {
+  showNewSessionModal.value = true
+}
+
+const closeNewSessionModal = () => {
+  showNewSessionModal.value = false
+  resetNewSession()
+}
+
+const resetNewSession = () => {
+  newSession.task = ''
+  newSession.type = 'feature'
+  newSession.duration = 25 * 60
+  newSession.contexts = []
+}
+
+const createSession = () => {
+  if (!newSession.task.trim()) return
+
+  activeSession.value = {
+    id: generateId(),
+    task: newSession.task,
+    type: newSession.type,
+    duration: newSession.duration,
+    elapsed: 0,
+    contexts: [...newSession.contexts],
+    notes: '',
+    started_at: new Date().toISOString()
+  }
+
+  remainingTime.value = newSession.duration
+  sessionNotes.value = ''
+  isPaused.value = false
+  
+  startTimer()
+  saveSessionToDatabase()
+  closeNewSessionModal()
+}
+
+const startTimer = () => {
+  if (timerInterval) clearInterval(timerInterval)
+  
+  timerInterval = setInterval(() => {
+    if (!isPaused.value && activeSession.value && remainingTime.value > 0) {
+      remainingTime.value--
+      sessionDuration.value++
+      activeSession.value.elapsed = sessionDuration.value
+      
+      // Auto-complete when timer reaches 0
+      if (remainingTime.value === 0) {
+        completeSession()
+      }
+    }
+  }, 1000)
+}
+
+const pauseSession = () => {
+  isPaused.value = true
+}
+
+const resumeSession = () => {
+  isPaused.value = false
+}
+
+const completeSession = async () => {
+  if (!activeSession.value) return
+  
+  activeSession.value.completed_at = new Date().toISOString()
+  activeSession.value.notes = sessionNotes.value
+  activeSession.value.focus_score = calculateFocusScore()
+  
+  // Save to database
+  await saveSessionToDatabase(true)
+  
+  // Clean up
+  if (timerInterval) {
+    clearInterval(timerInterval)
+    timerInterval = null
+  }
+  
+  // Add to recent sessions
+  recentSessions.value.unshift(activeSession.value)
+  
+  // Reset
+  activeSession.value = null
+  sessionDuration.value = 0
+  remainingTime.value = 0
+  sessionNotes.value = ''
+}
+
+const saveNotes = () => {
+  // Debounce note saving
+  if (notesTimeout) clearTimeout(notesTimeout)
+  
+  notesTimeout = setTimeout(() => {
+    if (activeSession.value) {
+      activeSession.value.notes = sessionNotes.value
+      saveSessionToDatabase()
+    }
+  }, 1000)
+}
+
+const saveSessionToDatabase = async (isComplete = false) => {
+  if (!activeSession.value || !props.project) return
+  
+  try {
+    const sessionData = {
+      project_id: props.project.id,
+      ...activeSession.value,
+      metadata: {
+        contexts: activeSession.value.contexts,
+        focus_score: activeSession.value.focus_score
+      }
+    }
+    
+    // Store in project metadata for now
+    // In a real app, you'd have a dedicated focus_sessions table
+    const metadata = props.project.metadata as any || {}
+    if (!metadata.focusSessions) metadata.focusSessions = []
+    
+    const existingIndex = metadata.focusSessions.findIndex((s: any) => s.id === activeSession.value?.id)
+    if (existingIndex >= 0) {
+      metadata.focusSessions[existingIndex] = sessionData
+    } else {
+      metadata.focusSessions.push(sessionData)
+    }
+    
+    await supabase
+      .from('projects')
+      .update({ metadata })
+      .eq('id', props.project.id)
+      
+  } catch (error) {
+    console.error('Failed to save focus session:', error)
+  }
+}
+
+const loadRecentSessions = async () => {
+  if (!props.project) return
+  
+  try {
+    const metadata = props.project.metadata as any || {}
+    if (metadata.focusSessions) {
+      recentSessions.value = metadata.focusSessions
+        .filter((s: any) => s.completed_at)
+        .sort((a: any, b: any) => new Date(b.completed_at).getTime() - new Date(a.completed_at).getTime())
+        .slice(0, 10)
+    }
+  } catch (error) {
+    console.error('Failed to load focus sessions:', error)
+  }
+}
+
+const calculateFocusScore = () => {
+  if (!activeSession.value) return 0
+  
+  // Simple focus score based on completion and notes
+  let score = 0
+  
+  // Completed full duration
+  if (activeSession.value.elapsed >= activeSession.value.duration * 0.9) {
+    score += 50
+  }
+  
+  // Has notes
+  if (sessionNotes.value.length > 50) {
+    score += 30
+  }
+  
+  // Has context
+  if (activeSession.value.contexts.length > 0) {
+    score += 20
+  }
+  
+  return Math.min(score, 100)
+}
+
+const selectContext = (type: string) => {
+  // This would open a selector for pages/features/journeys
+  console.log('Select context:', type)
+}
+
+const removeContext = (index: number) => {
+  newSession.contexts.splice(index, 1)
+}
+
+const viewSession = (session: FocusSession) => {
+  console.log('View session:', session)
+}
+
+// Utility functions
+const generateId = () => `focus_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+
+const formatDuration = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600)
+  const minutes = Math.floor((seconds % 3600) / 60)
+  const secs = seconds % 60
+  
+  if (hours > 0) {
+    return `${hours}h ${minutes}m`
+  } else if (minutes > 0) {
+    return `${minutes}m ${secs}s`
+  } else {
+    return `${secs}s`
+  }
+}
+
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+  
+  if (diffInHours < 24) {
+    return `${Math.floor(diffInHours)}h ago`
+  } else if (diffInHours < 168) { // 7 days
+    return `${Math.floor(diffInHours / 24)}d ago`
+  } else {
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+}
+
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength) + '...'
+}
+
+const getContextIcon = (type: string) => {
+  const icons: Record<string, string> = {
+    page: '📄',
+    feature: '⚡',
+    journey: '🛤️'
+  }
+  return icons[type] || '📎'
+}
+
+// Lifecycle
+onMounted(() => {
+  loadRecentSessions()
+})
+
+onUnmounted(() => {
+  if (timerInterval) clearInterval(timerInterval)
+  if (notesTimeout) clearTimeout(notesTimeout)
+})
+</script>
+
+<style scoped>
+.focus-mode {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+
+/* Header */
+.focus-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.focus-title h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.focus-subtitle {
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+}
+
+/* Active Session */
+.active-session {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.session-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.session-info h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 0.5rem 0;
+}
+
+.session-meta {
+  display: flex;
+  gap: 1rem;
+}
+
+.session-type {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  padding: 0.25rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+}
+
+.session-duration {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.session-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background: var(--bg-quaternary);
+}
+
+.action-btn.success {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22C55E;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+.action-btn.success:hover {
+  background: rgba(34, 197, 94, 0.2);
+}
+
+/* Focus Timer */
+.focus-timer {
+  position: relative;
+  width: 240px;
+  height: 240px;
+  margin: 0 auto 2rem;
+}
+
+.timer-ring {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.timer-ring-bg {
+  stroke: var(--bg-tertiary);
+}
+
+.timer-ring-progress {
+  stroke: var(--primary-500);
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer-display {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 300;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-separator {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Session Content */
+.session-content {
+  display: grid;
+  gap: 2rem;
+}
+
+.content-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1rem;
+}
+
+.context-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.context-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.context-icon {
+  font-size: 1rem;
+}
+
+.notes-textarea {
+  width: 100%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 1rem;
+  color: var(--text-primary);
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: var(--primary-500);
+}
+
+/* Session History */
+.session-history {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
+}
+
+.history-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.history-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.history-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.75rem;
+}
+
+.history-header h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  flex: 1;
+}
+
+.history-duration {
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+.history-meta {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+}
+
+.history-type {
+  color: var(--primary-500);
+}
+
+.history-date {
+  color: var(--text-tertiary);
+}
+
+.history-notes {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.history-stats {
+  display: flex;
+  gap: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+}
+
+/* Empty State */
+.empty-history {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-tertiary);
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  fill: currentColor;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+}
+
+.empty-history p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.empty-hint {
+  margin-top: 0.5rem !important;
+  font-size: 0.875rem !important;
+  color: var(--text-muted);
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-content {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: 16px;
+  width: 600px;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--border-primary);
+}
+
+.modal-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+/* Form */
+.session-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  overflow-y: auto;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.form-group label {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.form-input {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary-500);
+}
+
+/* Type Options */
+.type-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.type-option {
+  position: relative;
+}
+
+.type-option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.type-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--bg-tertiary);
+  border: 2px solid var(--border-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.type-option input:checked + .type-card {
+  border-color: var(--primary-500);
+  background: rgba(22, 193, 129, 0.1);
+}
+
+.type-icon {
+  font-size: 1.5rem;
+}
+
+/* Duration Options */
+.duration-options {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.duration-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.duration-btn:hover {
+  background: var(--bg-quaternary);
+}
+
+.duration-btn.active {
+  background: var(--primary-500);
+  color: white;
+  border-color: var(--primary-500);
+}
+
+/* Context Selector */
+.context-selector {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.context-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.context-btn:hover {
+  background: var(--bg-quaternary);
+  border-color: var(--primary-500);
+}
+
+.selected-contexts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.selected-context {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  padding: 0.375rem 0.75rem;
+  border-radius: 16px;
+  font-size: 0.875rem;
+}
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  color: var(--text-primary);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-primary);
+  margin-top: 0.5rem;
+}
+
+.btn-cancel,
+.btn-submit {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.btn-cancel:hover {
+  background: var(--bg-quaternary);
+  color: var(--text-primary);
+}
+
+.btn-submit {
+  background: var(--primary-500);
+  color: white;
+}
+
+.btn-submit:hover {
+  background: var(--primary-600);
+}
+
+/* Icon utility */
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Mobile adjustments */
+.is-mobile .focus-header {
+  padding: 1rem;
+}
+
+.is-mobile .focus-title h1 {
+  font-size: 1.5rem;
+}
+
+.is-mobile .active-session {
+  padding: 1rem;
+}
+
+.is-mobile .session-card {
+  padding: 1.5rem;
+}
+
+.is-mobile .focus-timer {
+  width: 200px;
+  height: 200px;
+}
+
+.is-mobile .timer-display {
+  font-size: 2.5rem;
+}
+
+.is-mobile .sessions-grid {
+  grid-template-columns: 1fr;
+}
+</style>

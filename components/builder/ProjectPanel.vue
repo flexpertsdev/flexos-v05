@@ -1,23 +1,54 @@
 <template>
   <div class="project-panel" :class="{ 'is-mobile': isMobile }">
-    <!-- Mobile Header / Panel Selector -->
-    <div v-if="isMobile" @click="showPanelSelector = true" class="panel-selector">
-      <span>{{ activeTabLabel }}</span>
-      <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
-    </div>
+    <!-- Detail View -->
+    <template v-if="detailView">
+      <PageDetailView 
+        v-if="detailView.type === 'page'"
+        :page="detailView.data"
+        @back="closeDetailView"
+      />
+      <FeatureDetailView 
+        v-else-if="detailView.type === 'feature'"
+        :feature="detailView.data"
+        @back="closeDetailView"
+      />
+      <JourneyDetailView 
+        v-else-if="detailView.type === 'journey'"
+        :journey="detailView.data"
+        @back="closeDetailView"
+      />
+    </template>
+    
+    <!-- Normal Panel View -->
+    <template v-else>
+      <!-- Mobile Header / Panel Selector -->
+      <div v-if="isMobile" @click="showPanelSelector = true" class="panel-selector">
+        <span>{{ activeTabLabel }}</span>
+        <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"></polyline></svg>
+      </div>
 
-    <!-- Desktop Tabs -->
-    <div v-else class="project-tabs">
-      <button v-for="tab in projectTabs" :key="tab.id" @click="selectTab(tab.id)" class="tab-button" :class="{ active: activeTab === tab.id }">
-        <svg class="icon" viewBox="0 0 24 24" v-html="tab.icon"></svg>
-        <span>{{ tab.label }}</span>
-      </button>
-    </div>
+      <!-- Desktop Tabs -->
+      <div v-else class="project-tabs">
+        <button v-for="tab in projectTabs" :key="tab.id" @click="selectTab(tab.id)" class="tab-button" :class="{ active: activeTab === tab.id }">
+          <svg class="icon" viewBox="0 0 24 24" v-html="tab.icon"></svg>
+          <span>{{ tab.label }}</span>
+        </button>
+      </div>
 
-    <!-- Content -->
-    <div class="project-content">
-      <component :is="activeProjectComponent" :project="project" />
-    </div>
+      <!-- Content -->
+      <div class="project-content">
+        <component 
+          :is="activeProjectComponent" 
+          :project="project"
+          @select:page="openPageDetail"
+          @select:feature="openFeatureDetail"
+          @select:journey="openJourneyDetail"
+          @add:page="handleAddPage"
+          @add:feature="handleAddFeature"
+          @add:journey="handleAddJourney"
+        />
+      </div>
+    </template>
 
     <!-- Mobile Panel Selector Bottom Sheet -->
     <transition name="slide-up">
@@ -39,6 +70,9 @@ import type { PropType } from 'vue'
 import type { Database } from '~/types/database'
 
 type Project = Database['public']['Tables']['projects']['Row']
+type Page = Database['public']['Tables']['pages']['Row']
+type Feature = Database['public']['Tables']['features']['Row']
+type Journey = Database['public']['Tables']['journeys']['Row']
 
 const props = defineProps({
   project: Object as PropType<Project | null>,
@@ -52,6 +86,10 @@ const props = defineProps({
 const emit = defineEmits(['update:activeTab'])
 
 const showPanelSelector = ref(false)
+const detailView = ref<{
+  type: 'page' | 'feature' | 'journey'
+  data: any
+} | null>(null)
 
 const projectTabs = [
   { id: 'vision', label: 'Vision', icon: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
@@ -61,6 +99,11 @@ const projectTabs = [
   { id: 'design', label: 'Design', icon: '<path d="M3 3h18v18H3V3zm3 3v12h12V6H6z"/><circle cx="12" cy="12" r="3"/>' },
   { id: 'database', label: 'Database', icon: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>' },
 ]
+
+// Import detail views
+const PageDetailView = defineAsyncComponent(() => import('~/components/builder/PageDetailView.vue'))
+const FeatureDetailView = defineAsyncComponent(() => import('~/components/builder/FeatureDetailView.vue'))
+const JourneyDetailView = defineAsyncComponent(() => import('~/components/builder/JourneyDetailView.vue'))
 
 const componentMap: Record<string, any> = {
   vision: defineAsyncComponent(() => import('~/components/builder/VisionPanel.vue')),
@@ -77,6 +120,39 @@ const activeTabLabel = computed(() => projectTabs.find(t => t.id === props.activ
 const selectTab = (tabId: string) => {
   emit('update:activeTab', tabId)
   showPanelSelector.value = false
+}
+
+// Detail view handlers
+const openPageDetail = (page: Page) => {
+  detailView.value = { type: 'page', data: page }
+}
+
+const openFeatureDetail = (feature: Feature) => {
+  detailView.value = { type: 'feature', data: feature }
+}
+
+const openJourneyDetail = (journey: Journey) => {
+  detailView.value = { type: 'journey', data: journey }
+}
+
+const closeDetailView = () => {
+  detailView.value = null
+}
+
+// Add handlers
+const handleAddPage = () => {
+  // TODO: Open page creation dialog or trigger AI chat
+  console.log('Add new page')
+}
+
+const handleAddFeature = () => {
+  // TODO: Open feature creation dialog or trigger AI chat
+  console.log('Add new feature')
+}
+
+const handleAddJourney = () => {
+  // TODO: Open journey creation dialog or trigger AI chat
+  console.log('Add new journey')
 }
 </script>
 

@@ -47,7 +47,7 @@
         </main>
         
         <main v-else class="main-content-alt">
-            <div v-if="currentMode === 'focus'" class="focus-mode-desktop"><h2>Focus Mode</h2></div>
+            <FocusMode v-if="currentMode === 'focus'" :project="project" />
             <div v-if="currentMode === 'map'" class="map-mode-desktop"><h2>Project Map</h2></div>
         </main>
       </div>
@@ -65,11 +65,13 @@
         <div class="mobile-tabs">
           <button @click="activeMobileTab = 'chat'" class="mobile-tab" :class="{ active: activeMobileTab === 'chat' }">Chat</button>
           <button @click="activeMobileTab = 'project'" class="mobile-tab" :class="{ active: activeMobileTab === 'project' }">Project</button>
+          <button @click="activeMobileTab = 'focus'" class="mobile-tab" :class="{ active: activeMobileTab === 'focus' }">Focus</button>
         </div>
 
         <main class="mobile-content">
           <ChatPanel v-show="activeMobileTab === 'chat'" :project="project" is-mobile />
           <ProjectPanel v-show="activeMobileTab === 'project'" :project="project" v-model:active-tab="activeProjectTab" is-mobile />
+          <FocusMode v-show="activeMobileTab === 'focus'" :project="project" is-mobile />
         </main>
       </div>
     </template>
@@ -84,6 +86,7 @@ import type { Database } from '~/types/database'
 // Import shared components
 const ChatPanel = defineAsyncComponent(() => import('~/components/builder/ChatPanel.vue'))
 const ProjectPanel = defineAsyncComponent(() => import('~/components/builder/ProjectPanel.vue'))
+const FocusMode = defineAsyncComponent(() => import('~/components/builder/FocusMode.vue'))
 
 // Types
 type Project = Database['public']['Tables']['projects']['Row']
