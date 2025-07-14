@@ -37,7 +37,22 @@
 
       <!-- Content -->
       <div class="project-content">
+        <EnhancedVisionPanel
+          v-if="activeTab === 'vision'"
+          :project-id="project?.id || ''"
+          ref="visionPanelRef"
+        />
+        <BlueprintPanel
+          v-else-if="activeTab === 'blueprint'"
+          :project-id="project?.id || ''"
+          @switch-mode="$emit('switch-mode', $event)"
+          @execute-suggestion="handleExecuteSuggestion"
+          @edit-action="handleEditAction"
+          @design-view="handleDesignView"
+          @generate="handleGenerate"
+        />
         <component 
+          v-else
           :is="activeProjectComponent" 
           :project="project"
           @select:page="openPageDetail"
@@ -83,16 +98,18 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:activeTab'])
+const emit = defineEmits(['update:activeTab', 'switch-mode'])
 
 const showPanelSelector = ref(false)
 const detailView = ref<{
   type: 'page' | 'feature' | 'journey'
   data: any
 } | null>(null)
+const visionPanelRef = ref<any>(null)
 
 const projectTabs = [
   { id: 'vision', label: 'Vision', icon: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>' },
+  { id: 'blueprint', label: 'Blueprint', icon: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>' },
   { id: 'pages', label: 'Pages', icon: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/>' },
   { id: 'features', label: 'Features', icon: '<path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/>' },
   { id: 'journeys', label: 'Journeys', icon: '<path d="M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2z"/>' },
@@ -105,8 +122,13 @@ const PageDetailView = defineAsyncComponent(() => import('~/components/builder/P
 const FeatureDetailView = defineAsyncComponent(() => import('~/components/builder/FeatureDetailView.vue'))
 const JourneyDetailView = defineAsyncComponent(() => import('~/components/builder/JourneyDetailView.vue'))
 
+// Import panels directly
+import EnhancedVisionPanel from '~/components/builder/EnhancedVisionPanel.vue'
+import BlueprintPanel from '~/components/builder/BlueprintPanel.vue'
+
 const componentMap: Record<string, any> = {
-  vision: defineAsyncComponent(() => import('~/components/builder/VisionPanel.vue')),
+  vision: defineAsyncComponent(() => import('~/components/builder/EnhancedVisionPanel.vue')),
+  blueprint: defineAsyncComponent(() => import('~/components/builder/BlueprintPanel.vue')),
   pages: defineAsyncComponent(() => import('~/components/builder/PagesPanel.vue')),
   features: defineAsyncComponent(() => import('~/components/builder/FeaturesPanel.vue')),
   journeys: defineAsyncComponent(() => import('~/components/builder/JourneysPanel.vue')),
@@ -154,6 +176,40 @@ const handleAddJourney = () => {
   // TODO: Open journey creation dialog or trigger AI chat
   console.log('Add new journey')
 }
+
+// Blueprint handlers
+const handleExecuteSuggestion = (suggestion: any) => {
+  console.log('Execute suggestion:', suggestion)
+  // TODO: Implement suggestion execution
+}
+
+const handleEditAction = (action: any) => {
+  console.log('Edit action:', action)
+  // TODO: Implement action editing
+}
+
+const handleDesignView = (view: any) => {
+  console.log('Design view:', view)
+  // TODO: Implement view design
+}
+
+const handleGenerate = (type: string) => {
+  console.log('Generate:', type)
+  // TODO: Implement generation
+}
+
+// Expose method to update vision
+const updateVision = (update: any) => {
+  console.log('ProjectPanel updateVision:', update)
+  if (visionPanelRef.value) {
+    visionPanelRef.value.updateVision(update)
+  }
+}
+
+// Expose methods to parent
+defineExpose({
+  updateVision
+})
 </script>
 
 <style scoped>

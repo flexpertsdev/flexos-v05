@@ -23,7 +23,7 @@ export default defineNuxtConfig({
     redirectOptions: {
       login: '/auth/signin',
       callback: '/dashboard',
-      exclude: ['/', '/auth/*', '/wizards/*']
+      exclude: ['/', '/auth/*', '/wizards/*', '/academy', '/meet', '/meet/*']
     }
   },
 

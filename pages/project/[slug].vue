@@ -41,14 +41,23 @@
           </div>
         </nav>
 
-        <main class="main-content" v-if="currentMode === 'builder'">
-          <ChatPanel :project="project" />
-          <ProjectPanel :project="project" v-model:active-tab="activeProjectTab" />
+        <main class="main-content" v-if="currentMode === 'builder' || currentMode === 'focus'">
+          <ChatPanel 
+            :project="project" 
+            :mode="currentMode"
+            @vision-update="handleVisionUpdate"
+            @mode-changed="handleModeChange"
+          />
+          <ProjectPanel 
+            :project="project" 
+            v-model:active-tab="activeProjectTab"
+            ref="projectPanelRef"
+            @switch-mode="handleModeChange"
+          />
         </main>
         
-        <main v-else class="main-content-alt">
-            <FocusModeChat v-if="currentMode === 'focus' && project" :project="project" />
-            <MapModePlaceholder v-if="currentMode === 'map'" />
+        <main v-else-if="currentMode === 'wizard'" class="main-content-alt">
+            <MapModePlaceholder />
         </main>
       </div>
 
@@ -106,6 +115,7 @@ const isMobile = ref(false)
 const currentMode = ref('builder')
 const activeMobileTab = ref('chat')
 const activeProjectTab = ref('vision') // Default project tab
+const projectPanelRef = ref<any>(null)
 
 // Check query params for initial mode
 const initialMode = route.query.mode as string
@@ -139,7 +149,27 @@ const loadProject = async () => {
 }
 
 const openSettings = () => console.log('Open settings')
+
 const checkIfMobile = () => isMobile.value = window.innerWidth <= 768
+
+// Handle vision updates from chat
+const handleVisionUpdate = (update: any) => {
+  console.log('Vision update in project page:', update)
+  // Pass directly to ProjectPanel's vision panel
+  if (projectPanelRef.value) {
+    projectPanelRef.value.updateVision(update)
+  }
+}
+
+// Handle mode changes from chat
+const handleModeChange = (newMode: string) => {
+  currentMode.value = newMode
+  
+  // If switching to focus mode, show blueprint panel
+  if (newMode === 'focus') {
+    activeProjectTab.value = 'blueprint'
+  }
+}
 
 // Lifecycle
 onMounted(async () => {
@@ -164,10 +194,7 @@ watch(() => route.params.slug, () => {
   if (route.params.slug) loadProject()
 })
 
-// Page meta
-definePageMeta({
-  middleware: 'auth'
-})
+// Note: This page requires authentication middleware
 </script>
 
 <style>

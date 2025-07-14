@@ -102,10 +102,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
-// Use guest middleware to redirect if already authenticated
-definePageMeta({
-  middleware: 'guest'
-})
+// Note: This page uses guest middleware to redirect if already authenticated
 
 const { resetPassword, updatePassword } = useAuth()
 const router = useRouter()

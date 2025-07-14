@@ -1,258 +1,382 @@
 <template>
-  <div class="vision-panel">
-    <div class="panel-header">
-      <h2 class="panel-heading">Project Vision</h2>
-      <button @click="editVision" class="edit-btn" title="Edit Vision">
-        <svg viewBox="0 0 24 24" class="icon">
-          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
-        </svg>
-      </button>
+  <div class="bg-surface-secondary p-6 rounded-lg">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-medium text-text-primary">
+        🎯 Project Vision
+      </h3>
+      <div class="flex items-center gap-2">
+        <button
+          v-if="!isEditing"
+          @click="isEditing = true"
+          class="text-sm text-primary hover:text-primary-hover transition-colors"
+        >
+          ✏️ Edit
+        </button>
+        <template v-else>
+          <button
+            @click="saveChanges"
+            class="text-sm text-green-500 hover:text-green-600 transition-colors"
+          >
+            ✅ Save
+          </button>
+          <button
+            @click="cancelEditing"
+            class="text-sm text-red-500 hover:text-red-600 transition-colors"
+          >
+            ❌ Cancel
+          </button>
+        </template>
+      </div>
     </div>
     
-    <div class="vision-card">
-      <h3 class="project-name">{{ project?.name || 'My Project' }}</h3>
-      <p class="project-description">
-        {{ project?.description || 'No description provided. Add a compelling project description to communicate your vision.' }}
-      </p>
-      
-      <div class="divider"></div>
-      
-      <div class="objectives-section">
-        <h4 class="section-title">Key Objectives</h4>
-        <ul v-if="objectives.length > 0" class="objectives-list">
-          <li v-for="(objective, index) in objectives" :key="index">
-            <span class="bullet">•</span>
-            <span>{{ objective }}</span>
-          </li>
-        </ul>
-        <div v-else class="empty-state">
-          <p>No objectives defined yet.</p>
-          <button @click="addObjective" class="add-btn">Add Objective</button>
+    <div v-if="!visionDoc" class="text-center py-12 text-text-secondary">
+      <div class="text-4xl mb-4">🚀</div>
+      <p>Start chatting about your project idea</p>
+      <p class="text-sm mt-2">I'll help you shape your vision!</p>
+    </div>
+    
+    <div v-else class="space-y-6">
+      <!-- Elevator Pitch -->
+      <div>
+        <h4 class="text-sm font-medium text-text-secondary mb-2">
+          🎯 The Vision
+        </h4>
+        <div v-if="!isEditing" class="text-text-primary">
+          {{ visionDoc.elevator_pitch || 'Tell me about your idea...' }}
         </div>
+        <textarea
+          v-else
+          v-model="editingDoc!.elevator_pitch"
+          class="w-full p-3 bg-surface rounded-md text-text-primary resize-none"
+          rows="3"
+          placeholder="What's your big idea?"
+        />
       </div>
       
-      <div v-if="targetAudience || techStack" class="additional-info">
-        <div v-if="targetAudience" class="info-section">
-          <h4 class="section-title">Target Audience</h4>
-          <p class="info-text">{{ targetAudience }}</p>
-        </div>
-        
-        <div v-if="techStack" class="info-section">
-          <h4 class="section-title">Tech Stack</h4>
-          <div class="tech-tags">
-            <span v-for="tech in techStackArray" :key="tech" class="tech-tag">{{ tech }}</span>
+      <!-- User Personas -->
+      <div>
+        <h4 class="text-sm font-medium text-text-secondary mb-2">
+          👥 Who It's For
+        </h4>
+        <div v-if="!isEditing" class="space-y-2">
+          <div
+            v-for="(persona, index) in visionDoc.user_personas"
+            :key="index"
+            class="flex items-start gap-2"
+          >
+            <span class="text-primary">•</span>
+            <span class="text-text-primary">{{ persona }}</span>
+          </div>
+          <div v-if="!visionDoc.user_personas?.length" class="text-text-tertiary">
+            Who are your users?
           </div>
         </div>
+        <div v-else class="space-y-2">
+          <div
+            v-for="(persona, index) in editingDoc?.user_personas || []"
+            :key="index"
+            class="flex items-center gap-2"
+          >
+            <input
+              v-model="editingDoc!.user_personas[index]"
+              class="flex-1 p-2 bg-surface rounded-md text-text-primary"
+              placeholder="User persona..."
+            />
+            <button
+              @click="removeItem('user_personas', index)"
+              class="text-red-500 hover:text-red-600"
+            >
+              ❌
+            </button>
+          </div>
+          <button
+            @click="addItem('user_personas')"
+            class="text-sm text-primary hover:text-primary-hover"
+          >
+            + Add persona
+          </button>
+        </div>
       </div>
+      
+      <!-- Pain Points -->
+      <div>
+        <h4 class="text-sm font-medium text-text-secondary mb-2">
+          🔥 Problems We're Solving
+        </h4>
+        <div v-if="!isEditing" class="space-y-2">
+          <div
+            v-for="(point, index) in visionDoc.pain_points"
+            :key="index"
+            class="flex items-start gap-2"
+          >
+            <span class="text-orange-500">•</span>
+            <span class="text-text-primary">{{ point }}</span>
+          </div>
+          <div v-if="!visionDoc.pain_points?.length" class="text-text-tertiary">
+            What problems are you solving?
+          </div>
+        </div>
+        <div v-else class="space-y-2">
+          <div
+            v-for="(point, index) in editingDoc?.pain_points || []"
+            :key="index"
+            class="flex items-center gap-2"
+          >
+            <input
+              v-model="editingDoc!.pain_points[index]"
+              class="flex-1 p-2 bg-surface rounded-md text-text-primary"
+              placeholder="Pain point..."
+            />
+            <button
+              @click="removeItem('pain_points', index)"
+              class="text-red-500 hover:text-red-600"
+            >
+              ❌
+            </button>
+          </div>
+          <button
+            @click="addItem('pain_points')"
+            class="text-sm text-primary hover:text-primary-hover"
+          >
+            + Add pain point
+          </button>
+        </div>
+      </div>
+      
+      <!-- Key Features -->
+      <div>
+        <h4 class="text-sm font-medium text-text-secondary mb-2">
+          ✨ Key Features
+        </h4>
+        <div v-if="!isEditing" class="space-y-2">
+          <div
+            v-for="(feature, index) in visionDoc.key_features"
+            :key="index"
+            class="flex items-start gap-2"
+          >
+            <span class="text-green-500">•</span>
+            <span class="text-text-primary">{{ feature }}</span>
+          </div>
+          <div v-if="!visionDoc.key_features?.length" class="text-text-tertiary">
+            What features will you build?
+          </div>
+        </div>
+        <div v-else class="space-y-2">
+          <div
+            v-for="(feature, index) in editingDoc?.key_features || []"
+            :key="index"
+            class="flex items-center gap-2"
+          >
+            <input
+              v-model="editingDoc!.key_features[index]"
+              class="flex-1 p-2 bg-surface rounded-md text-text-primary"
+              placeholder="Key feature..."
+            />
+            <button
+              @click="removeItem('key_features', index)"
+              class="text-red-500 hover:text-red-600"
+            >
+              ❌
+            </button>
+          </div>
+          <button
+            @click="addItem('key_features')"
+            class="text-sm text-primary hover:text-primary-hover"
+          >
+            + Add feature
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Progress Indicator -->
+    <div v-if="visionDoc" class="mt-6 pt-6 border-t border-surface">
+      <div class="flex items-center justify-between text-sm">
+        <span class="text-text-secondary">Vision Clarity</span>
+        <span class="text-primary">{{ completionPercentage }}%</span>
+      </div>
+      <div class="mt-2 h-2 bg-surface rounded-full overflow-hidden">
+        <div
+          class="h-full bg-primary transition-all duration-300"
+          :style="{ width: `${completionPercentage}%` }"
+        />
+      </div>
+    </div>
+    
+    <!-- Share Button (Future Feature) -->
+    <div v-if="visionDoc && completionPercentage > 50" class="mt-4 text-center">
+      <button
+        @click="shareProject"
+        class="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+        disabled
+      >
+        🔗 Share Project (Coming Soon)
+      </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { Database } from '~/types/database'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useSupabase } from '~/composables/useSupabase'
 
-type Project = Database['public']['Tables']['projects']['Row']
-
-interface Props {
-  project?: Project | null
+interface VisionDocument {
+  id?: string
+  project_id: string
+  elevator_pitch: string
+  user_personas: string[]
+  pain_points: string[]
+  key_features: string[]
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits(['update:project'])
+const props = defineProps<{
+  projectId: string
+}>()
 
-// Extract vision data from project metadata
-const visionData = computed(() => {
-  const metadata = props.project?.metadata as any
-  return metadata?.vision || {}
-})
+const supabase = useSupabase()
+const visionDoc = ref<VisionDocument | null>(null)
+const editingDoc = ref<VisionDocument | null>(null)
+const isEditing = ref(false)
 
-// Computed properties for vision components
-const objectives = computed(() => {
-  return visionData.value.objectives || []
-})
-
-const targetAudience = computed(() => {
-  return visionData.value.targetAudience || ''
-})
-
-const techStack = computed(() => {
-  return visionData.value.techStack || ''
-})
-
-const techStackArray = computed(() => {
-  if (!techStack.value) return []
-  return techStack.value.split(',').map((tech: string) => tech.trim())
-})
-
-// Methods
-const editVision = () => {
-  // TODO: Open vision editor modal
-  console.log('Edit vision')
+// Load existing vision document
+const loadVisionDoc = async () => {
+  const { data, error } = await supabase
+    .from('vision_documents')
+    .select('*')
+    .eq('project_id', props.projectId)
+    .single()
+  
+  if (data) {
+    visionDoc.value = data
+  }
 }
 
-const addObjective = () => {
-  // TODO: Add objective through chat or modal
-  console.log('Add objective')
+// Save changes to database
+const saveChanges = async () => {
+  if (!editingDoc.value && !visionDoc.value) return
+  
+  const dataToSave = editingDoc.value || visionDoc.value
+  console.log('Saving vision document:', dataToSave)
+  
+  const { data, error } = await supabase
+    .from('vision_documents')
+    .upsert({
+      ...dataToSave,
+      project_id: props.projectId
+    })
+    .select()
+  
+  if (error) {
+    console.error('Error saving vision document:', error)
+  } else {
+    console.log('Vision document saved successfully:', data)
+    if (editingDoc.value) {
+      visionDoc.value = { ...editingDoc.value }
+      isEditing.value = false
+    }
+  }
 }
+
+// Cancel editing
+const cancelEditing = () => {
+  editingDoc.value = visionDoc.value ? { ...visionDoc.value } : null
+  isEditing.value = false
+}
+
+// Add item to array
+const addItem = (field: 'user_personas' | 'pain_points' | 'key_features') => {
+  if (!editingDoc.value) return
+  editingDoc.value[field] = [...(editingDoc.value[field] || []), '']
+}
+
+// Remove item from array
+const removeItem = (field: 'user_personas' | 'pain_points' | 'key_features', index: number) => {
+  if (!editingDoc.value) return
+  editingDoc.value[field] = editingDoc.value[field].filter((_, i) => i !== index)
+}
+
+// Calculate completion percentage
+const completionPercentage = computed(() => {
+  if (!visionDoc.value) return 0
+  
+  let score = 0
+  if (visionDoc.value.elevator_pitch) score += 25
+  if (visionDoc.value.user_personas?.length > 0) score += 25
+  if (visionDoc.value.pain_points?.length > 0) score += 25
+  if (visionDoc.value.key_features?.length > 0) score += 25
+  
+  return score
+})
+
+// Share project (future feature)
+const shareProject = () => {
+  // TODO: Implement project sharing
+  console.log('Sharing coming soon!')
+}
+
+// Update vision from AI
+const updateVision = (updates: Partial<VisionDocument>) => {
+  console.log('VisionPanel updateVision called with:', updates)
+  
+  if (!visionDoc.value) {
+    visionDoc.value = {
+      project_id: props.projectId,
+      elevator_pitch: '',
+      user_personas: [],
+      pain_points: [],
+      key_features: []
+    }
+  }
+  
+  // Merge updates
+  if (updates.elevator_pitch) {
+    visionDoc.value.elevator_pitch = updates.elevator_pitch
+  }
+  
+  if (updates.user_personas) {
+    visionDoc.value.user_personas = [
+      ...new Set([...(visionDoc.value.user_personas || []), ...updates.user_personas])
+    ]
+  }
+  
+  if (updates.pain_points) {
+    visionDoc.value.pain_points = [
+      ...new Set([...(visionDoc.value.pain_points || []), ...updates.pain_points])
+    ]
+  }
+  
+  if (updates.key_features) {
+    visionDoc.value.key_features = [
+      ...new Set([...(visionDoc.value.key_features || []), ...updates.key_features])
+    ]
+  }
+  
+  console.log('Updated visionDoc:', visionDoc.value)
+  
+  // Auto-save to database
+  saveChanges()
+}
+
+// Watch for editing mode
+watch(isEditing, (newVal) => {
+  if (newVal) {
+    editingDoc.value = visionDoc.value ? { ...visionDoc.value } : {
+      project_id: props.projectId,
+      elevator_pitch: '',
+      user_personas: [],
+      pain_points: [],
+      key_features: []
+    }
+  }
+})
+
+// Load on mount
+onMounted(() => {
+  loadVisionDoc()
+})
+
+// Expose update method
+defineExpose({
+  updateVision
+})
 </script>
-
-<style scoped>
-.vision-panel {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-}
-
-.panel-heading {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.edit-btn {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: all 0.2s;
-}
-
-.edit-btn:hover {
-  background: var(--bg-secondary);
-  color: var(--primary-500);
-}
-
-.icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-}
-
-.vision-card {
-  background: var(--bg-secondary);
-  border-radius: 12px;
-  padding: 1.5rem;
-  border: 1px solid var(--border-primary);
-  flex: 1;
-  overflow-y: auto;
-}
-
-.project-name {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--primary-500);
-  margin-bottom: 1rem;
-}
-
-.project-description {
-  color: var(--text-secondary);
-  line-height: 1.8;
-  margin-bottom: 1.5rem;
-}
-
-.divider {
-  height: 1px;
-  background: var(--border-primary);
-  margin: 1.5rem 0;
-}
-
-.objectives-section {
-  margin-bottom: 2rem;
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 1rem;
-}
-
-.objectives-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.objectives-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.5rem 0;
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.bullet {
-  color: var(--primary-500);
-  font-weight: 600;
-  flex-shrink: 0;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-tertiary);
-}
-
-.empty-state p {
-  margin-bottom: 1rem;
-}
-
-.add-btn {
-  background: var(--primary-500);
-  color: white;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-btn:hover {
-  background: var(--primary-600);
-}
-
-.additional-info {
-  margin-top: 2rem;
-}
-
-.info-section {
-  margin-bottom: 1.5rem;
-}
-
-.info-section:last-child {
-  margin-bottom: 0;
-}
-
-.info-text {
-  color: var(--text-secondary);
-  line-height: 1.6;
-}
-
-.tech-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.tech-tag {
-  background: var(--bg-tertiary);
-  color: var(--text-secondary);
-  padding: 0.25rem 0.75rem;
-  border-radius: 4px;
-  font-size: 0.875rem;
-  border: 1px solid var(--border-primary);
-}
-</style>

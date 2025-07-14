@@ -4,6 +4,19 @@
     <div class="panel-header">
       <h3 class="panel-title">AI Assistant</h3>
       <div class="header-actions">
+        <!-- Mode Switcher -->
+        <div class="mode-switcher">
+          <button 
+            v-for="mode in chatModes" 
+            :key="mode.value"
+            @click="switchMode(mode.value)"
+            class="mode-btn"
+            :class="{ active: currentMode === mode.value }"
+            :title="mode.description"
+          >
+            {{ mode.label }}
+          </button>
+        </div>
         <button @click="toggleThinking" class="icon-btn" :class="{ active: showThinking }" title="Show AI thinking">
           <svg class="icon" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
         </button>
@@ -17,7 +30,15 @@
       <div v-if="messages.length === 0 && !isStreaming" class="message ai">
         <div class="message-avatar ai">AI</div>
         <div class="message-content">
-          Hi! I'm here to help you build your {{ project?.name || 'project' }}. What would you like to work on today?
+          <template v-if="currentMode === 'focus'">
+            Welcome to Focus mode! Let's explore your ideas for {{ project?.name || 'your project' }}. What's your vision? I'm here to help you think through the possibilities.
+          </template>
+          <template v-else-if="currentMode === 'builder'">
+            Hi! I'm here to help you build {{ project?.name || 'your project' }}. What would you like to create or work on today?
+          </template>
+          <template v-else-if="currentMode === 'wizard'">
+            Welcome to Wizard mode! I'll guide you through structured processes step by step. What would you like to set up?
+          </template>
         </div>
       </div>
       
@@ -153,6 +174,7 @@ import { ref, computed, nextTick, defineAsyncComponent, watch, onMounted } from 
 import type { PropType } from 'vue'
 import type { Database } from '~/types/database'
 import type { Context, ChatMode, ActionConfig } from '~/types/chat'
+import type { BlueprintUpdate } from '~/types/blueprint'
 
 // Import rich message components dynamically
 const ThinkingDisplay = defineAsyncComponent(() => import('./messages/ThinkingDisplay.vue'))
@@ -166,16 +188,36 @@ const props = defineProps({
   mode: {
     type: String as PropType<ChatMode>,
     default: 'builder'
+  },
+  currentVision: {
+    type: Object,
+    default: () => null
   }
 })
 
+// Chat modes configuration
+const chatModes: Array<{ value: ChatMode; label: string; description: string }> = [
+  { value: 'focus', label: 'Focus', description: 'Exploratory conversation mode' },
+  { value: 'builder', label: 'Builder', description: 'Task-oriented mode' },
+  { value: 'wizard', label: 'Wizard', description: 'Guided process mode' }
+]
+
+// Current mode (reactive)
+const currentMode = ref<ChatMode>(props.mode)
+
 const emit = defineEmits<{
   'action-executed': [action: ActionConfig]
+  'vision-update': [update: any]
+  'blueprint-update': [update: BlueprintUpdate]
+  'mode-changed': [mode: ChatMode]
 }>()
 
 // Auth and DB
 const { user } = useAuth()
-const supabase = useSupabase()
+const supabase = useSupabaseClient()
+
+// Blueprint system
+const { applyBlueprintUpdate } = useBlueprint()
 
 // Chat state
 const currentChatId = ref<string | null>(null)
@@ -216,7 +258,7 @@ const handleSendMessage = async () => {
     user_id: user.value?.id,
     role: 'user' as const,
     content: message,
-    context_mode: props.mode,
+    context_mode: currentMode.value,
     contexts: attachedContexts.value,
     message_type: 'text' as const,
     created_at: new Date().toISOString(),
@@ -233,6 +275,29 @@ const handleSendMessage = async () => {
   error.value = null
   
   try {
+    // Gather context
+    const contexts: Context[] = []
+    
+    // Add location context
+    contexts.push({
+      type: 'location',
+      data: {
+        currentView: 'builder',
+        activeProject: props.project?.name || 'Unknown',
+        activePage: undefined,
+        activeComponent: undefined,
+        breadcrumb: ['Projects', props.project?.name || 'Unknown'],
+        viewState: {}
+      },
+      metadata: {
+        source: 'automatic',
+        timestamp: new Date().toISOString()
+      }
+    })
+    
+    // Add any attached contexts
+    contexts.push(...attachedContexts.value)
+    
     // Use Anthropic endpoint
     const endpoint = '/api/chat/anthropic'
     const response = await $fetch<{ content: string; error?: boolean }>(endpoint, {
@@ -242,7 +307,15 @@ const handleSendMessage = async () => {
         history: messages.value.slice(-10).map(m => ({
           role: m.role,
           content: m.content
-        }))
+        })),
+        mode: currentMode.value,
+        context: contexts,
+        project: {
+          name: props.project?.name,
+          type: props.project?.type,
+          description: props.project?.description
+        },
+        vision: props.currentVision
       }
     })
     
@@ -254,13 +327,33 @@ const handleSendMessage = async () => {
       user_id: user.value?.id,
       role: 'assistant' as const,
       content: response.content,
-      context_mode: props.mode,
+      context_mode: currentMode.value,
       message_type: 'text' as const,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     }
     
     messages.value.push(tempAssistantMessage)
+    
+    // Process vision updates if in focus mode
+    if (currentMode.value === 'focus') {
+      const typedResponse = response as any
+      
+      // Process legacy vision updates
+      if (typedResponse.visionUpdates) {
+        console.log('Vision updates received:', typedResponse.visionUpdates)
+        emit('vision-update', typedResponse.visionUpdates)
+      }
+      
+      // Process new blueprint updates
+      if (typedResponse.blueprintUpdates && props.project) {
+        console.log('Blueprint updates received:', typedResponse.blueprintUpdates)
+        emit('blueprint-update', typedResponse.blueprintUpdates)
+        
+        // Apply updates to database in real-time
+        await applyBlueprintUpdate(props.project.id, typedResponse.blueprintUpdates)
+      }
+    }
     
     // Save to database in background (optional)
     saveMessagesToDatabase()
@@ -318,6 +411,14 @@ const clearChat = () => {
 // Toggle thinking display
 const toggleThinking = () => {
   showThinking.value = !showThinking.value
+}
+
+// Switch chat mode
+const switchMode = (mode: ChatMode) => {
+  currentMode.value = mode
+  emit('mode-changed', mode)
+  // Optionally clear chat when switching modes
+  // clearChat()
 }
 
 // Handle attachments
@@ -467,6 +568,37 @@ watch(streamingMessage, () => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.mode-switcher {
+  display: flex;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.mode-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.mode-btn:hover:not(.active) {
+  background: var(--bg-quaternary);
+  color: var(--text-primary);
+}
+
+.mode-btn.active {
+  background: var(--primary-500);
+  color: white;
 }
 
 .icon-btn {

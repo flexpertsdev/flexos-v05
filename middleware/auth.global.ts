@@ -1,6 +1,10 @@
-import { watch } from 'vue'
-
 export default defineNuxtRouteMiddleware(async (to, from) => {
+  // Skip auth check on server side for initial page load
+  // The Supabase module will handle the redirect
+  if (process.server) {
+    return
+  }
+  
   const { isAuthenticated, isLoading } = useAuth()
   
   // Public routes that don't require auth
@@ -16,7 +20,14 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   ]
   
   // Check if route is public
-  const isPublicRoute = publicRoutes.some(route => to.path.startsWith(route))
+  // Use exact match for root paths and prefix match for sub-paths
+  const isPublicRoute = publicRoutes.some(route => {
+    // Exact match
+    if (to.path === route) return true
+    // Prefix match with proper path boundary
+    if (route !== '/' && (to.path === route || to.path.startsWith(route + '/'))) return true
+    return false
+  })
   
   // If it's a public route, allow access
   if (isPublicRoute) {

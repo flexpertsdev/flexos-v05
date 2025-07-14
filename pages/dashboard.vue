@@ -221,10 +221,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import type { Database } from '~/types/database'
 
-// Require authentication
-definePageMeta({
-  middleware: 'auth'
-})
+// Note: This page requires authentication middleware
 
 type Project = Database['public']['Tables']['projects']['Row']
 

@@ -10,18 +10,20 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 
-// Disable auth middleware for this page
-definePageMeta({
-  middleware: []
-})
-
+// This page handles OAuth callbacks
 const router = useRouter()
+const route = useRoute()
+const { isAuthenticated } = useAuth()
 
 onMounted(async () => {
-  // Small delay to ensure auth state is updated
-  setTimeout(() => {
-    router.push('/dashboard')
-  }, 1000)
+  // Wait a bit for auth state to update
+  await new Promise(resolve => setTimeout(resolve, 500))
+  
+  // Check if we have a redirect URL in the query params
+  const redirectTo = route.query.redirectTo as string || '/dashboard'
+  
+  // Navigate to the intended destination
+  await router.push(redirectTo)
 })
 </script>
 

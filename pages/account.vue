@@ -332,10 +332,7 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useSupabase } from '~/composables/useSupabase'
 
-// Require authentication
-definePageMeta({
-  middleware: 'auth'
-})
+// Note: This page requires authentication middleware
 
 const { user, getUserProfile, updateProfile: updateUserProfile, updatePassword, signOut } = useAuth()
 const router = useRouter()

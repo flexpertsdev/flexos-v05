@@ -1,0 +1,1 @@
+chmod +x run-enhanced-vision-migration.sh
