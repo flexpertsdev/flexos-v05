@@ -302,11 +302,12 @@ const formatMessageContent = (content: string | null): string => {
 // Get rich message component
 const getRichMessageComponent = (type: string) => {
   // These would be implemented as separate components
+  // TODO: Implement these message components
   const components: Record<string, any> = {
-    selection: defineAsyncComponent(() => import('./messages/SelectionMessage.vue')),
-    comparison: defineAsyncComponent(() => import('./messages/ComparisonMessage.vue')),
-    form: defineAsyncComponent(() => import('./messages/FormMessage.vue')),
-    visual: defineAsyncComponent(() => import('./messages/VisualMessage.vue'))
+    // selection: defineAsyncComponent(() => import('./messages/SelectionMessage.vue')),
+    // comparison: defineAsyncComponent(() => import('./messages/ComparisonMessage.vue')),
+    // form: defineAsyncComponent(() => import('./messages/FormMessage.vue')),
+    // visual: defineAsyncComponent(() => import('./messages/VisualMessage.vue'))
   }
   return components[type] || 'div'
 }
