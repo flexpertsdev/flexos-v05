@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#000000">
+    
+    <!-- 
+    ============================================
+    AI INSTRUCTION SYSTEM - READ THIS FIRST
+    ============================================
+    
+    PROMPT TEMPLATE PROCESSOR:
+    
+    When user provides a request like:
+    - "make me whatsapp but red"
+    - "I want a light themed spotify ux"
+    - "page similar to newsfeed but for group posts"
+    
+    Follow these steps:
+    
+    1. PARSE USER INTENT:
+       - App/page type
+       - Style preferences
+       - Referenced apps/pages
+       - Functional requirements
+    
+    2. REFERENCE ANALYSIS:
+       - Existing app: Research UX patterns
+       - Previous work: Ask for design system
+       - Style only: Focus on visual adaptation
+    
+    3. SMART ASSUMPTIONS:
+       - "[App] but [color]" = Keep functionality, change colors
+       - "[Theme] themed [app]" = Adapt visuals, keep UX
+       - "Like [page] but for [purpose]" = Keep design system, adapt content
+    
+    4. FILL THIS TEMPLATE:
+       - Page name and purpose
+       - Navigation structure
+       - Content blocks
+       - Progressive enhancement
+       - Color scheme
+       - Interactive elements
+    
+    5. EXAMPLE INTERPRETATIONS:
+       "WhatsApp but red" = Messaging UI with red color scheme
+       "Light Spotify" = Music player with light theme
+       "Newsfeed for groups" = Social feed adapted for group context
+    -->
+    
+    <!-- AI INSTRUCTION: Replace with your page title -->
+    <title>Page Title - Your App Name</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json">
+    
+    <!-- AI INSTRUCTION: Add your favicon and app icons here -->
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <style>
+        /* CSS Reset & Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            /* 
+            AI INSTRUCTION: DESIGN SYSTEM VARIABLES
+            
+            When user references colors:
+            - "red" = Primary: #DC143C, Secondary: #8B0000
+            - "blue" = Primary: #007AFF, Secondary: #0051D5
+            - "green" = Primary: #34C759, Secondary: #248A3D
+            - "purple" = Primary: #5856D6, Secondary: #3634A3
+            - "light theme" = Background: #FFFFFF, Text: #000000
+            - "dark theme" = Background: #000000, Text: #FFFFFF
+            
+            For app references:
+            - WhatsApp = #25D366, #128C7E, #075E54
+            - Spotify = #1DB954, #191414, #FFFFFF
+            - Instagram = #E1306C, #833AB4, #F56040
+            - Twitter/X = #1DA1F2, #14171A, #657786
+            */
+            
+            --primary-color: #007AFF;
+            --secondary-color: #5856D6;
+            --success-color: #34C759;
+            --warning-color: #FF9500;
+            --danger-color: #FF3B30;
+            --dark: #1C1C1E;
+            --gray-1: #8E8E93;
+            --gray-2: #C7C7CC;
+            --gray-3: #D1D1D6;
+            --gray-4: #E5E5EA;
+            --gray-5: #F2F2F7;
+            --white: #FFFFFF;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+            
+            /* Typography */
+            --font-primary: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --font-size-xs: 12px;
+            --font-size-sm: 14px;
+            --font-size-base: 16px;
+            --font-size-lg: 18px;
+            --font-size-xl: 24px;
+            --font-size-xxl: 32px;
+            --font-size-xxxl: 48px;
+            
+            /* Transitions */
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 350ms ease;
+            
+            /* Shadows */
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 20px rgba(0,0,0,0.15);
+            
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            
+            /* Safe Areas for iOS */
+            --safe-area-inset-top: env(safe-area-inset-top);
+            --safe-area-inset-bottom: env(safe-area-inset-bottom);
+            --safe-area-inset-left: env(safe-area-inset-left);
+            --safe-area-inset-right: env(safe-area-inset-right);
+            
+            /* Z-index Scale */
+            --z-dropdown: 1000;
+            --z-sticky: 1020;
+            --z-fixed: 1030;
+            --z-modal-backdrop: 1040;
+            --z-modal: 1050;
+            --z-popover: 1060;
+            --z-tooltip: 1070;
+        }
+        
+        html {
+            font-family: var(--font-primary);
+            font-size: var(--font-size-base);
+            line-height: 1.5;
+            color: var(--dark);
+            background-color: var(--white);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        body {
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow-x: hidden;
+        }
+        
+        /* Utility Classes */
+        .container {
+            width: 100%;
+            padding-left: var(--spacing-md);
+            padding-right: var(--spacing-md);
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .hidden { display: none !important; }
+        .hidden-mobile { display: none !important; }
+        .hidden-tablet { display: block; }
+        .hidden-desktop { display: block; }
+        
+        /* Component Base Styles */
+        .header {
+            position: sticky;
+            top: 0;
+            z-index: var(--z-sticky);
+            background: var(--white);
+            border-bottom: 1px solid var(--gray-4);
+            padding-top: var(--safe-area-inset-top);
+        }
+        
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 56px;
+            padding: 0 var(--spacing-md);
+        }
+        
+        .nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-top: 1px solid var(--gray-4);
+            padding-bottom: var(--safe-area-inset-bottom);
+            z-index: var(--z-fixed);
+        }
+        
+        .nav-content {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 56px;
+        }
+        
+        .main {
+            padding-bottom: calc(56px + var(--safe-area-inset-bottom));
+            min-height: 100vh;
+        }
+        
+        .section {
+            padding: var(--spacing-lg) 0;
+        }
+        
+        .card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        
+        .card:active {
+            transform: scale(0.98);
+        }
+        
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        .button-primary {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        
+        .button-primary:active {
+            background: color-mix(in srgb, var(--primary-color) 80%, black);
+        }
+        
+        /* Grid System - Mobile First */
+        .grid {
+            display: grid;
+            gap: var(--spacing-md);
+            grid-template-columns: 1fr;
+        }
+        
+        /* Responsive Images */
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        /* Form Elements */
+        input, textarea, select {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: 1px solid var(--gray-3);
+            border-radius: var(--radius-md);
+            font-size: var(--font-size-base);
+            transition: border-color var(--transition-base);
+        }
+        
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        /* Loading States */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gray-4) 25%, var(--gray-3) 50%, var(--gray-4) 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* 
+        ============================================
+        COMPONENT LIBRARY - READY TO USE
+        ============================================
+        */
+        
+        /* Bottom Sheet / Action Sheet */
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(100%);
+            transition: transform var(--transition-base);
+            z-index: var(--z-modal);
+            max-height: 90vh;
+            overflow-y: auto;
+            padding-bottom: var(--safe-area-inset-bottom);
+        }
+        
+        .bottom-sheet.active {
+            transform: translateY(0);
+        }
+        
+        .bottom-sheet-handle {
+            width: 36px;
+            height: 4px;
+            background: var(--gray-3);
+            border-radius: var(--radius-full);
+            margin: var(--spacing-sm) auto;
+        }
+        
+        /* Modal / Dialog */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: var(--z-modal-backdrop);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity var(--transition-base), visibility var(--transition-base);
+        }
+        
+        .modal-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-lg);
+            z-index: var(--z-modal);
+            width: 90%;
+            max-width: 500px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-base);
+        }
+        
+        .modal.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Popover / Dropdown */
+        .popover {
+            position: absolute;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-md);
+            z-index: var(--z-popover);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all var(--transition-fast);
+        }
+        
+        .popover.active {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+        
+        /* Toast / Snackbar */
+        .toast {
+            position: fixed;
+            bottom: calc(var(--spacing-lg) + var(--safe-area-inset-bottom));
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--dark);
+            color: var(--white);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border-radius: var(--radius-full);
+            z-index: var(--z-tooltip);
+            opacity: 0;
+            transition: all var(--transition-base);
+        }
+        
+        .toast.active {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        
+        /* Floating Action Button */
+        .fab {
+            position: fixed;
+            bottom: calc(var(--spacing-lg) + 56px + var(--safe-area-inset-bottom));
+            right: var(--spacing-lg);
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-full);
+            background: var(--primary-color);
+            color: var(--white);
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: var(--z-fixed);
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+        
+        .fab:active {
+            transform: scale(0.9);
+        }
+        
+        /* Sidebar (Desktop) */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--white);
+            border-right: 1px solid var(--gray-4);
+            transform: translateX(-100%);
+            transition: transform var(--transition-base);
+            z-index: var(--z-fixed);
+            overflow-y: auto;
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        /* Tab System */
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-4);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: var(--spacing-md);
+            text-align: center;
+            border-bottom: 2px solid transparent;
+            transition: all var(--transition-base);
+            white-space: nowrap;
+        }
+        
+        .tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Chip / Tag */
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: var(--spacing-xs) var(--spacing-md);
+            background: var(--gray-5);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-sm);
+            margin: var(--spacing-xs);
+        }
+        
+        /* List Item */
+        .list-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--gray-4);
+            transition: background var(--transition-fast);
+        }
+        
+        .list-item:active {
+            background: var(--gray-5);
+        }
+        
+        /* Avatar */
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-full);
+            background: var(--gray-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 var(--spacing-xs);
+            background: var(--danger-color);
+            color: var(--white);
+            border-radius: var(--radius-full);
+            font-size: var(--font-size-xs);
+            font-weight: 600;
+        }
+        
+        /* Progress Bar */
+        .progress {
+            height: 4px;
+            background: var(--gray-4);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: var(--primary-color);
+            transition: width var(--transition-base);
+        }
+        
+        /* Tablet Styles (768px+) */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 768px;
+                padding-left: var(--spacing-lg);
+                padding-right: var(--spacing-lg);
+            }
+            
+            .hidden-mobile { display: block !important; }
+            .hidden-tablet { display: none !important; }
+            
+            .grid-tablet-2 { grid-template-columns: repeat(2, 1fr); }
+            .grid-tablet-3 { grid-template-columns: repeat(3, 1fr); }
+            
+            .header-content {
+                height: 64px;
+            }
+            
+            .nav {
+                position: static;
+                border-top: none;
+                border-bottom: 1px solid var(--gray-4);
+                padding-bottom: 0;
+            }
+            
+            .nav-content {
+                justify-content: flex-start;
+                gap: var(--spacing-xl);
+                padding: 0 var(--spacing-lg);
+            }
+            
+            .main {
+                padding-bottom: 0;
+            }
+            
+            .section {
+                padding: var(--spacing-xl) 0;
+            }
+            
+            /* Modal centered with more space */
+            .modal {
+                width: 80%;
+            }
+        }
+        
+        /* Desktop Styles (1024px+) */
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1024px;
+                padding-left: var(--spacing-xl);
+                padding-right: var(--spacing-xl);
+            }
+            
+            .hidden-desktop { display: none !important; }
+            
+            .grid-desktop-3 { grid-template-columns: repeat(3, 1fr); }
+            .grid-desktop-4 { grid-template-columns: repeat(4, 1fr); }
+            
+            .card:hover {
+                box-shadow: var(--shadow-md);
+                transform: translateY(-2px);
+            }
+            
+            /* Enhanced Desktop Features */
+            .sidebar {
+                position: sticky;
+                top: calc(64px + var(--spacing-lg));
+                height: fit-content;
+            }
+            
+            .main-with-sidebar {
+                display: grid;
+                grid-template-columns: 280px 1fr;
+                gap: var(--spacing-xl);
+            }
+            
+            /* Desktop sidebar always visible */
+            .sidebar-desktop {
+                transform: translateX(0);
+                position: sticky;
+                top: 64px;
+            }
+        }
+        
+        /* Large Desktop (1440px+) */
+        @media (min-width: 1440px) {
+            .container {
+                max-width: 1280px;
+            }
+            
+            .grid-large-5 { grid-template-columns: repeat(5, 1fr); }
+            .grid-large-6 { grid-template-columns: repeat(6, 1fr); }
+        }
+        
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --white: #1C1C1E;
+                --dark: #FFFFFF;
+                --gray-5: #2C2C2E;
+                --gray-4: #3A3A3C;
+                --gray-3: #48484A;
+                --gray-2: #636366;
+                --gray-1: #8E8E93;
+            }
+            
+            .header, .nav, .modal, .popover, .bottom-sheet, .sidebar {
+                background: var(--gray-5);
+                border-color: var(--gray-4);
+            }
+        }
+        
+        /* Reduced Motion */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+        
+        /* Print Styles */
+        @media print {
+            .header, .nav, .fab, .no-print { display: none !important; }
+            .main { padding-bottom: 0; }
+            .modal-backdrop, .bottom-sheet, .sidebar { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    ============================================
+    NAVIGATION PATTERNS
+    ============================================
+    
+    Common patterns by app type:
+    
+    MESSAGING APPS (WhatsApp, Telegram):
+    - Top tabs: Chats | Status | Calls
+    - FAB for new message
+    - Search in header
+    
+    SOCIAL MEDIA (Instagram, Twitter):
+    - Bottom tabs: Home | Search | Create | Activity | Profile
+    - Stories bar at top
+    - Pull to refresh
+    
+    MUSIC APPS (Spotify, Apple Music):
+    - Bottom tabs: Home | Search | Library
+    - Now playing bar above tabs
+    - Persistent mini player
+    
+    E-COMMERCE (Amazon, eBay):
+    - Bottom tabs: Home | Categories | Cart | Account
+    - Search prominent in header
+    - Filter/sort options
+    
+    PRODUCTIVITY (Notion, Todoist):
+    - Sidebar on desktop
+    - Bottom tabs on mobile
+    - Quick actions/create button
+    -->
+    
+    <!-- Header - AI INSTRUCTION: Customize with your app header content -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <!-- AI INSTRUCTION: Add your logo/app name here -->
+                <h1 style="font-size: var(--font-size-lg); font-weight: 700;">App Name</h1>
+            </div>
+            <div class="header-actions">
+                <!-- AI INSTRUCTION: Add header actions (search, profile, etc.) -->
+                <button class="button button-primary hidden-mobile">Action</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation - AI INSTRUCTION: Customize navigation items -->
+    <nav class="nav">
+        <div class="nav-content">
+            <!-- AI INSTRUCTION: Add navigation items with icons for mobile, text for desktop -->
+            <a href="#" class="nav-item" style="text-decoration: none; color: var(--dark);">
+                <span>Home</span>
+            </a>
+            <a href="#" class="nav-item" style="text-decoration: none; color: var(--gray-1);">
+                <span>Browse</span>
+            </a>
+            <a href="#" class="nav-item" style="text-decoration: none; color: var(--gray-1);">
+                <span>Profile</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Hero Section - AI INSTRUCTION: Add hero content, CTAs -->
+            <section class="section">
+                <h2 style="font-size: var(--font-size-xl); margin-bottom: var(--spacing-md);">
+                    <!-- AI INSTRUCTION: Add your main heading -->
+                    Welcome to Your App
+                </h2>
+                <p style="color: var(--gray-1); margin-bottom: var(--spacing-lg);">
+                    <!-- AI INSTRUCTION: Add descriptive text -->
+                    This is a mobile-first, progressive enhancement template.
+                </p>
+                
+                <!-- AI INSTRUCTION: Example of responsive grid -->
+                <div class="grid grid-tablet-2 grid-desktop-3" style="margin-top: var(--spacing-lg);">
+                    <!-- AI INSTRUCTION: Repeat this card pattern for your content -->
+                    <div class="card">
+                        <h3 style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">Feature 1</h3>
+                        <p style="color: var(--gray-1);">Description of this feature.</p>
+                    </div>
+                    <div class="card">
+                        <h3 style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">Feature 2</h3>
+                        <p style="color: var(--gray-1);">Description of this feature.</p>
+                    </div>
+                    <div class="card hidden-mobile">
+                        <h3 style="font-size: var(--font-size-lg); margin-bottom: var(--spacing-sm);">Feature 3</h3>
+                        <p style="color: var(--gray-1);">Enhanced content for larger screens.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Section with Progressive Enhancement -->
+            <section class="section">
+                <!-- Mobile: Simple list, Tablet+: Grid -->
+                <div class="grid grid-tablet-2 grid-desktop-4">
+                    <!-- AI INSTRUCTION: Add your content items -->
+                    <div class="card">
+                        <div class="skeleton" style="height: 120px; border-radius: var(--radius-md); margin-bottom: var(--spacing-sm);"></div>
+                        <h4>Item Title</h4>
+                        <p style="color: var(--gray-1); font-size: var(--font-size-sm);">Brief description</p>
+                        <div class="hidden-mobile" style="margin-top: var(--spacing-sm);">
+                            <p style="font-size: var(--font-size-sm);">Additional details shown on larger screens.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Desktop Enhanced Layout Example -->
+            <section class="section hidden-tablet">
+                <div class="main-with-sidebar">
+                    <aside class="sidebar sidebar-desktop">
+                        <!-- AI INSTRUCTION: Add sidebar content for desktop -->
+                        <div class="card">
+                            <h3>Filters</h3>
+                            <p>Advanced filtering options for desktop users.</p>
+                        </div>
+                    </aside>
+                    <div>
+                        <!-- AI INSTRUCTION: Main content area -->
+                        <div class="card">
+                            <h3>Enhanced Desktop View</h3>
+                            <p>This layout is only visible on desktop screens with sidebar support.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- 
+    ============================================
+    COMPONENT TEMPLATES (COMMENTED OUT)
+    ============================================
+    
+    Copy and uncomment these as needed:
+    -->
+    
+    <!-- Bottom Sheet Example -->
+    <!--
+    <div class="bottom-sheet" id="bottomSheet">
+        <div class="bottom-sheet-handle"></div>
+        <div style="padding: var(--spacing-lg);">
+            <h3>Options</h3>
+            <div class="list-item">
+                <span>Share</span>
+            </div>
+            <div class="list-item">
+                <span>Edit</span>
+            </div>
+            <div class="list-item">
+                <span>Delete</span>
+            </div>
+        </div>
+    </div>
+    -->
+    
+    <!-- Modal Example -->
+    <!--
+    <div class="modal-backdrop" id="modalBackdrop"></div>
+    <div class="modal" id="modal">
+        <div style="padding: var(--spacing-lg);">
+            <h3>Modal Title</h3>
+            <p>Modal content goes here.</p>
+            <div style="margin-top: var(--spacing-lg); text-align: right;">
+                <button class="button">Cancel</button>
+                <button class="button button-primary">Confirm</button>
+            </div>
+        </div>
+    </div>
+    -->
+    
+    <!-- Floating Action Button -->
+    <!--
+    <button class="fab">
+        <span style="font-size: 24px;">+</span>
+    </button>
+    -->
+    
+    <!-- Toast Notification -->
+    <!--
+    <div class="toast" id="toast">
+        Message sent successfully
+    </div>
+    -->
+    
+    <!-- Tab System -->
+    <!--
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab(0)">Tab 1</div>
+        <div class="tab" onclick="switchTab(1)">Tab 2</div>
+        <div class="tab" onclick="switchTab(2)">Tab 3</div>
+    </div>
+    <div class="tab-content active">Content 1</div>
+    <div class="tab-content">Content 2</div>
+    <div class="tab-content">Content 3</div>
+    -->
+    
+    <!-- List with Avatars -->
+    <!--
+    <div class="list-item">
+        <div class="avatar">
+            <img src="user-photo.jpg" alt="User">
+        </div>
+        <div style="flex: 1; margin-left: var(--spacing-md);">
+            <div style="font-weight: 600;">User Name</div>
+            <div style="font-size: var(--font-size-sm); color: var(--gray-1);">Last message...</div>
+        </div>
+        <div>
+            <div class="badge">3</div>
+        </div>
+    </div>
+    -->
+
+    <!-- AI INSTRUCTION: Add your interactive JavaScript here -->
+    <script>
+        // Service Worker Registration for PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                // AI INSTRUCTION: Create a service worker file for offline support
+                // navigator.serviceWorker.register('/sw.js');
+            });
+        }
+
+        /*
+        ============================================
+        VUE.JS INTEGRATION GUIDE
+        ============================================
+        
+        When converting to Vue/Nuxt:
+        
+        1. COMPONENT MAPPING:
+           - Header → HeaderComponent.vue
+           - Nav → NavigationComponent.vue
+           - Card → CardComponent.vue
+           - Modal → ModalComponent.vue
+           - BottomSheet → BottomSheetComponent.vue
+        
+        2. STATE MANAGEMENT (Vuex/Pinia):
+           - Navigation active state
+           - Modal/sheet visibility
+           - User preferences
+           - Theme settings
+           - Content data
+        
+        3. RESPONSIVE LOGIC:
+           // In Vue component
+           data() {
+             return {
+               isMobile: window.innerWidth < 768,
+               isTablet: window.innerWidth >= 768 && window.innerWidth < 1024,
+               isDesktop: window.innerWidth >= 1024
+             }
+           }
+           
+        4. PROGRESSIVE ENHANCEMENT:
+           <template>
+             <div v-if="!isMobile" class="enhanced-content">
+               <!-- Desktop only content -->
+             </div>
+           </template>
+        
+        5. TRANSITIONS:
+           <transition name="slide-up">
+             <div v-if="showBottomSheet" class="bottom-sheet">
+               <!-- Content -->
+             </div>
+           </transition>
+        */
+
+        // Responsive Utilities
+        const breakpoints = {
+            mobile: 0,
+            tablet: 768,
+            desktop: 1024,
+            large: 1440
+        };
+
+        function getCurrentBreakpoint() {
+            const width = window.innerWidth;
+            if (width >= breakpoints.large) return 'large';
+            if (width >= breakpoints.desktop) return 'desktop';
+            if (width >= breakpoints.tablet) return 'tablet';
+            return 'mobile';
+        }
+
+        // Component Controllers
+        
+        // Bottom Sheet
+        function showBottomSheet() {
+            const sheet = document.getElementById('bottomSheet');
+            if (sheet) sheet.classList.add('active');
+        }
+        
+        function hideBottomSheet() {
+            const sheet = document.getElementById('bottomSheet');
+            if (sheet) sheet.classList.remove('active');
+        }
+        
+        // Modal
+        function showModal() {
+            const modal = document.getElementById('modal');
+            const backdrop = document.getElementById('modalBackdrop');
+            if (modal && backdrop) {
+                modal.classList.add('active');
+                backdrop.classList.add('active');
+            }
+        }
+        
+        function hideModal() {
+            const modal = document.getElementById('modal');
+            const backdrop = document.getElementById('modalBackdrop');
+            if (modal && backdrop) {
+                modal.classList.remove('active');
+                backdrop.classList.remove('active');
+            }
+        }
+        
+        // Toast
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.textContent = message;
+                toast.classList.add('active');
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                }, duration);
+            }
+        }
+        
+        // Tab System
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            
+            contents.forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+        }
+        
+        // Viewport height fix for mobile browsers
+        function setViewportHeight() {
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+        
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        
+        /*
+        ============================================
+        APP-SPECIFIC PATTERNS
+        ============================================
+        
+        MESSAGING APP:
+        - Real-time updates via WebSocket
+        - Message status indicators
+        - Typing indicators
+        - Read receipts
+        
+        SOCIAL MEDIA:
+        - Infinite scroll
+        - Pull to refresh
+        - Double tap to like
+        - Story progression
+        
+        E-COMMERCE:
+        - Add to cart animations
+        - Image galleries
+        - Filter/sort dropdowns
+        - Quick view modals
+        
+        MUSIC APP:
+        - Audio player controls
+        - Progress bars
+        - Playlist management
+        - Queue system
+        */
+    </script>
+</body>
+</html>

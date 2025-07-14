@@ -47,7 +47,7 @@
         </main>
         
         <main v-else class="main-content-alt">
-            <FocusMode v-if="currentMode === 'focus'" :project="project" />
+            <FocusModeChat v-if="currentMode === 'focus' && project" :project="project" />
             <div v-if="currentMode === 'map'" class="map-mode-desktop"><h2>Project Map</h2></div>
         </main>
       </div>
@@ -68,10 +68,10 @@
           <button @click="activeMobileTab = 'focus'" class="mobile-tab" :class="{ active: activeMobileTab === 'focus' }">Focus</button>
         </div>
 
-        <main class="mobile-content">
+        <main class="mobile-content" v-if="project">
           <ChatPanel v-show="activeMobileTab === 'chat'" :project="project" is-mobile />
           <ProjectPanel v-show="activeMobileTab === 'project'" :project="project" v-model:active-tab="activeProjectTab" is-mobile />
-          <FocusMode v-show="activeMobileTab === 'focus'" :project="project" is-mobile />
+          <FocusModeChat v-show="activeMobileTab === 'focus'" :project="project" is-mobile />
         </main>
       </div>
     </template>
@@ -86,7 +86,7 @@ import type { Database } from '~/types/database'
 // Import shared components
 const ChatPanel = defineAsyncComponent(() => import('~/components/builder/ChatPanel.vue'))
 const ProjectPanel = defineAsyncComponent(() => import('~/components/builder/ProjectPanel.vue'))
-const FocusMode = defineAsyncComponent(() => import('~/components/builder/FocusMode.vue'))
+const FocusModeChat = defineAsyncComponent(() => import('~/components/builder/FocusModePlaceholder.vue'))
 
 // Types
 type Project = Database['public']['Tables']['projects']['Row']
@@ -105,6 +105,10 @@ const isMobile = ref(false)
 const currentMode = ref('builder')
 const activeMobileTab = ref('chat')
 const activeProjectTab = ref('vision') // Default project tab
+
+// Check query params for initial mode
+const initialMode = route.query.mode as string
+const isInitialSession = route.query.initial === 'true'
 
 // Methods
 const loadProject = async () => {
@@ -141,6 +145,14 @@ onMounted(async () => {
   checkIfMobile()
   window.addEventListener('resize', checkIfMobile)
   await loadProject()
+  
+  // Set initial mode from query params
+  if (initialMode === 'focus') {
+    currentMode.value = 'focus'
+    if (isMobile.value) {
+      activeMobileTab.value = 'focus'
+    }
+  }
 })
 
 onUnmounted(() => {

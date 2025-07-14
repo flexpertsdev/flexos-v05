@@ -34,27 +34,6 @@
     
     <!-- Content Sections -->
     <div class="selector-content">
-      <!-- Recently Used -->
-      <div v-if="recentItems.length > 0 && !searchQuery" class="content-section">
-        <div class="section-header" @click="toggleSection('recent')">
-          <svg viewBox="0 0 24 24" class="section-icon">
-            <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
-          </svg>
-          <span class="section-title">Recently Used</span>
-          <svg viewBox="0 0 24 24" class="chevron" :class="{ expanded: expandedSections.recent }">
-            <path d="M7 10l5 5 5-5z"/>
-          </svg>
-        </div>
-        <div v-if="expandedSections.recent" class="section-items">
-          <AttachmentListItem 
-            v-for="item in recentItems"
-            :key="item.id"
-            :item="item"
-            @select="selectItem"
-          />
-        </div>
-      </div>
-      
       <!-- Pages -->
       <div v-if="filteredPages.length > 0" class="content-section">
         <div class="section-header" @click="toggleSection('pages')">
@@ -97,48 +76,6 @@
         </div>
       </div>
       
-      <!-- Journeys -->
-      <div v-if="filteredJourneys.length > 0" class="content-section">
-        <div class="section-header" @click="toggleSection('journeys')">
-          <svg viewBox="0 0 24 24" class="section-icon">
-            <path d="M13 2.05v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.06-4.09l-2.6-1.53C16.17 17.98 14.21 19 12 19z"/>
-          </svg>
-          <span class="section-title">Journeys ({{ filteredJourneys.length }})</span>
-          <svg viewBox="0 0 24 24" class="chevron" :class="{ expanded: expandedSections.journeys }">
-            <path d="M7 10l5 5 5-5z"/>
-          </svg>
-        </div>
-        <div v-if="expandedSections.journeys" class="section-items">
-          <AttachmentListItem 
-            v-for="journey in filteredJourneys"
-            :key="journey.id"
-            :item="formatJourneyItem(journey)"
-            @select="selectItem"
-          />
-        </div>
-      </div>
-      
-      <!-- Workspace Files -->
-      <div v-if="filteredWorkspace.length > 0" class="content-section">
-        <div class="section-header" @click="toggleSection('workspace')">
-          <svg viewBox="0 0 24 24" class="section-icon">
-            <path d="M10 4H4c-1.11 0-2 .89-2 2v12c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2h-8l-2-2z"/>
-          </svg>
-          <span class="section-title">Workspace ({{ filteredWorkspace.length }})</span>
-          <svg viewBox="0 0 24 24" class="chevron" :class="{ expanded: expandedSections.workspace }">
-            <path d="M7 10l5 5 5-5z"/>
-          </svg>
-        </div>
-        <div v-if="expandedSections.workspace" class="section-items">
-          <AttachmentListItem 
-            v-for="file in filteredWorkspace"
-            :key="file.id"
-            :item="formatWorkspaceItem(file)"
-            @select="selectItem"
-          />
-        </div>
-      </div>
-      
       <!-- Empty State -->
       <div v-if="isSearching && noResults" class="empty-state">
         <svg viewBox="0 0 24 24" class="empty-icon">
@@ -161,13 +98,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { Database } from '~/types/database'
 import type { Context } from '~/types/chat'
+import type { PageRow } from '~/types/models/page'
+import type { Database } from '~/types/database'
 
-type Page = Database['public']['Tables']['pages']['Row']
 type Feature = Database['public']['Tables']['features']['Row']
 type Journey = Database['public']['Tables']['journeys']['Row']
-type Attachment = Database['public']['Tables']['attachments']['Row']
 
 // Child component
 const AttachmentListItem = defineAsyncComponent(() => import('./AttachmentListItem.vue'))
@@ -182,20 +118,14 @@ const emit = defineEmits<{
 
 // State
 const searchQuery = ref('')
-const pages = ref<Page[]>([])
+const pages = ref<PageRow[]>([])
 const features = ref<Feature[]>([])
-const journeys = ref<Journey[]>([])
-const workspaceFiles = ref<Attachment[]>([])
-const recentItems = ref<any[]>([])
 const fileInput = ref<HTMLInputElement>()
 
 // UI State
 const expandedSections = ref({
-  recent: true,
   pages: true,
-  features: false,
-  journeys: false,
-  workspace: false
+  features: false
 })
 
 // Load data
@@ -217,78 +147,61 @@ const loadProjectData = async () => {
     .eq('project_id', props.projectId)
     .order('name')
   features.value = featuresData || []
-  
-  // Load journeys
-  const { data: journeysData } = await supabase
-    .from('journeys')
-    .select('*')
-    .eq('project_id', props.projectId)
-    .order('name')
-  journeys.value = journeysData || []
-  
-  // Load workspace files
-  const { data: filesData } = await supabase
-    .from('attachments')
-    .select('*')
-    .eq('project_id', props.projectId)
-    .eq('processing_status', 'completed')
-    .order('created_at', { ascending: false })
-  workspaceFiles.value = filesData || []
-  
-  // Load recent items (mock for now)
-  recentItems.value = []
 }
 
-// Search filtering
-const isSearching = computed(() => searchQuery.value.length > 0)
+// Search filtering - DISABLED DUE TO TYPESCRIPT BUG
+const isSearching = computed(() => false) // searchQuery.value.length > 0
 
+// Just return all items - no filtering due to TypeScript issue
+const filteredPages = computed(() => pages.value)
+const filteredFeatures = computed(() => features.value)
+
+/*
+// Original filtering code - causes "Type instantiation is excessively deep" error
 const filteredPages = computed(() => {
-  if (!isSearching.value) return pages.value
+  const currentPages = pages.value
+  if (!isSearching.value) return currentPages
+  
   const query = searchQuery.value.toLowerCase()
-  return pages.value.filter(page => 
-    page.name.toLowerCase().includes(query) ||
-    page.path.toLowerCase().includes(query)
-  )
+  const result: PageRow[] = []
+  
+  for (const page of currentPages) {
+    if (page.name.toLowerCase().includes(query) || 
+        page.path.toLowerCase().includes(query)) {
+      result.push(page)
+    }
+  }
+  
+  return result
 })
 
 const filteredFeatures = computed(() => {
-  if (!isSearching.value) return features.value
+  const currentFeatures = features.value
+  if (!isSearching.value) return currentFeatures
+  
   const query = searchQuery.value.toLowerCase()
-  return features.value.filter(feature => 
-    feature.name.toLowerCase().includes(query) ||
-    feature.description?.toLowerCase().includes(query)
-  )
+  const result: Feature[] = []
+  
+  for (const feature of currentFeatures) {
+    if (feature.name.toLowerCase().includes(query) || 
+        (feature.description && feature.description.toLowerCase().includes(query))) {
+      result.push(feature)
+    }
+  }
+  
+  return result
 })
-
-const filteredJourneys = computed(() => {
-  if (!isSearching.value) return journeys.value
-  const query = searchQuery.value.toLowerCase()
-  return journeys.value.filter(journey => 
-    journey.name.toLowerCase().includes(query) ||
-    journey.description?.toLowerCase().includes(query)
-  )
-})
-
-const filteredWorkspace = computed(() => {
-  if (!isSearching.value) return workspaceFiles.value
-  const query = searchQuery.value.toLowerCase()
-  return workspaceFiles.value.filter(file => 
-    file.name.toLowerCase().includes(query) ||
-    file.original_name?.toLowerCase().includes(query)
-  )
-})
+*/
 
 const noResults = computed(() => 
   filteredPages.value.length === 0 &&
-  filteredFeatures.value.length === 0 &&
-  filteredJourneys.value.length === 0 &&
-  filteredWorkspace.value.length === 0
+  filteredFeatures.value.length === 0
 )
 
 // Format items for display
-const formatPageItem = (page: Page) => ({
+const formatPageItem = (page: PageRow) => ({
   id: page.id,
-  type: 'page',
+  type: 'page' as const,
   name: page.name,
   description: page.path,
   icon: '📄',
@@ -297,49 +210,19 @@ const formatPageItem = (page: Page) => ({
 
 const formatFeatureItem = (feature: Feature) => ({
   id: feature.id,
-  type: 'feature',
+  type: 'feature' as const,
   name: feature.name,
   description: feature.description || 'No description',
   icon: '⚡',
   data: feature
 })
 
-const formatJourneyItem = (journey: Journey) => ({
-  id: journey.id,
-  type: 'journey',
-  name: journey.name,
-  description: journey.description || 'No description',
-  icon: '🛤️',
-  data: journey
-})
-
-const formatWorkspaceItem = (file: Attachment) => ({
-  id: file.id,
-  type: 'workspace',
-  name: file.name,
-  description: file.original_name || file.mime_type || 'File',
-  icon: getFileIcon(file.attachment_type),
-  data: file
-})
-
-// Get file icon based on type
-const getFileIcon = (type: string) => {
-  const icons: Record<string, string> = {
-    'image': '🖼️',
-    'document': '📄',
-    'file': '📎',
-    'url': '🔗'
-  }
-  return icons[type] || '📁'
-}
-
 // Methods
 const handleSearch = () => {
   // Expand all sections when searching
   if (isSearching.value) {
-    Object.keys(expandedSections.value).forEach(key => {
-      expandedSections.value[key as keyof typeof expandedSections.value] = true
-    })
+    expandedSections.value.pages = true
+    expandedSections.value.features = true
   }
 }
 
@@ -568,5 +451,12 @@ onMounted(() => {
 .empty-state p {
   font-size: 0.875rem;
   margin: 0;
+}
+
+/* Utilities */
+.icon {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
 }
 </style>

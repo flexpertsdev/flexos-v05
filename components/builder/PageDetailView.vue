@@ -42,7 +42,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">Status</span>
-            <span class="status-badge" :class="getStatusClass()">{{ getStatusText() }}</span>
+            <span class="status-badge" :class="statusClass">{{ statusText }}</span>
           </div>
           <div class="info-item">
             <span class="info-label">Template</span>
@@ -50,9 +50,9 @@
           </div>
         </div>
         
-        <div v-if="page?.meta?.description" class="description">
+        <div v-if="pageDescription" class="description">
           <h3 class="subsection-title">Description</h3>
-          <p>{{ page.meta.description }}</p>
+          <p>{{ pageDescription }}</p>
         </div>
       </div>
       
@@ -145,33 +145,17 @@
           </div>
         </div>
       </div>
-      
-      <!-- Components Section -->
-      <div class="content-section">
-        <h2 class="section-title">Page Components</h2>
-        <div v-if="pageComponents.length > 0" class="components-list">
-          <div v-for="component in pageComponents" :key="component.id" class="component-item">
-            <span class="component-name">{{ component.name }}</span>
-            <span class="component-type">{{ component.type }}</span>
-          </div>
-        </div>
-        <div v-else class="empty-state">
-          <p>No components assigned to this page yet.</p>
-          <button @click="addComponent" class="add-btn">Add Component</button>
-        </div>
-      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
-import type { Database } from '~/types/database'
-
-type Page = Database['public']['Tables']['pages']['Row']
+import { ref, computed, onMounted } from 'vue'
+import type { PageRow, PageMeta, PageContent } from '~/types/models/page'
+import { getPageMeta, getPageContent } from '~/types/models/page'
 
 interface Props {
-  page?: Page | null
+  page?: PageRow | null
 }
 
 const props = defineProps<Props>()
@@ -181,7 +165,6 @@ const emit = defineEmits(['back', 'update'])
 const isEditing = ref(false)
 const editableTemplate = ref('')
 const selectedDevice = ref('desktop')
-const pageComponents = ref<any[]>([])
 
 // Device preview options
 const devices = [
@@ -190,10 +173,43 @@ const devices = [
   { id: 'desktop', name: 'Desktop', icon: 'M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z' }
 ]
 
-// Get Vue template from page content
+// Computed properties
+const pageMeta = computed<PageMeta>(() => {
+  if (!props.page) return {}
+  return getPageMeta(props.page)
+})
+
+const pageContent = computed<PageContent>(() => {
+  if (!props.page) return {}
+  return getPageContent(props.page)
+})
+
+const statusClass = computed(() => {
+  const status = pageMeta.value.status || 'draft'
+  return {
+    'done': status === 'done' || status === 'completed',
+    'in-progress': status === 'in-progress',
+    'draft': status === 'draft'
+  }
+})
+
+const statusText = computed(() => {
+  const status = pageMeta.value.status || 'draft'
+  const statusMap: Record<string, string> = {
+    'done': 'Completed',
+    'completed': 'Completed',
+    'in-progress': 'In Progress',
+    'draft': 'Draft'
+  }
+  return statusMap[status] || 'Draft'
+})
+
+const pageDescription = computed(() => {
+  return pageMeta.value.description || null
+})
+
 const vueTemplate = computed(() => {
-  const content = props.page?.content as any
-  return content?.vueTemplate || content?.template || ''
+  return pageContent.value.vueTemplate || pageContent.value.template || ''
 })
 
 // Get default template
@@ -249,32 +265,6 @@ const previewHtml = computed(() => {
   `
 })
 
-// Get status class
-const getStatusClass = () => {
-  const meta = props.page?.meta as any
-  const status = meta?.status || 'draft'
-  return {
-    'done': status === 'done' || status === 'completed',
-    'in-progress': status === 'in-progress' || status === 'active',
-    'draft': status === 'draft' || status === 'planned'
-  }
-}
-
-// Get status text
-const getStatusText = () => {
-  const meta = props.page?.meta as any
-  const status = meta?.status || 'draft'
-  const statusMap: Record<string, string> = {
-    'done': 'Completed',
-    'completed': 'Completed',
-    'in-progress': 'In Progress',
-    'active': 'In Progress',
-    'draft': 'Draft',
-    'planned': 'Planned'
-  }
-  return statusMap[status] || 'Draft'
-}
-
 // Methods
 const goBack = () => {
   emit('back')
@@ -298,8 +288,16 @@ const toggleEditor = () => {
 }
 
 const saveTemplate = async () => {
-  // TODO: Save template to database
-  console.log('Save template', editableTemplate.value)
+  if (!props.page) return
+  
+  // Update page content with new template
+  const newContent: PageContent = {
+    ...pageContent.value,
+    vueTemplate: editableTemplate.value
+  }
+  
+  // TODO: Save to database
+  console.log('Save template', newContent)
   isEditing.value = false
 }
 
@@ -322,21 +320,6 @@ const regenerateTemplate = () => {
   // TODO: Call AI to regenerate template
   console.log('Regenerate template with AI')
 }
-
-const addComponent = () => {
-  // TODO: Open component selector
-  console.log('Add component')
-}
-
-// Load page components
-const loadComponents = async () => {
-  // TODO: Load components assigned to this page
-  pageComponents.value = []
-}
-
-onMounted(() => {
-  loadComponents()
-})
 </script>
 
 <style scoped>
@@ -704,33 +687,6 @@ onMounted(() => {
   border: none;
 }
 
-/* Components Section */
-.components-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.component-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem 1rem;
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-primary);
-  border-radius: 6px;
-}
-
-.component-name {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-
-.component-type {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-}
-
 /* Utilities */
 .icon {
   width: 20px;
@@ -751,31 +707,6 @@ onMounted(() => {
 .icon-btn:hover {
   background: var(--bg-tertiary);
   color: var(--primary-500);
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-tertiary);
-}
-
-.empty-state p {
-  margin-bottom: 1rem;
-}
-
-.add-btn {
-  background: var(--primary-500);
-  border: none;
-  color: white;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.add-btn:hover {
-  background: var(--primary-600);
 }
 
 /* Mobile Responsive */

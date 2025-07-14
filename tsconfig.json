@@ -16,19 +16,22 @@
       "@types/node"
     ],
     "paths": {
-      "~/*": ["./src/*", "./*"],
-      "@/*": ["./src/*"]
+      "~/*": ["./*"],
+      "@/*": ["./*"],
+      "#app": ["./node_modules/nuxt/dist/app"],
+      "#app/*": ["./node_modules/nuxt/dist/app/*"],
+      "#imports": ["./.nuxt/imports"],
+      "#build/*": ["./.nuxt/*"],
+      "#supabase/server": ["./node_modules/@nuxtjs/supabase/dist/runtime/server/services"]
     }
   },
   "include": [
-    "src/**/*",
-    "src/**/*.vue",
-    "types/**/*",
-    "server/**/*"
+    "**/*",
+    ".nuxt/types/**/*"
   ],
   "exclude": [
     "node_modules",
-    ".nuxt",
-    "dist"
+    "dist",
+    "archive/**/*"
   ]
 }

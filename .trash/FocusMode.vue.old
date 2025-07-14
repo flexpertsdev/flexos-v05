@@ -118,7 +118,7 @@
           </div>
           <div class="history-meta">
             <span class="history-type">{{ session.type }}</span>
-            <span class="history-date">{{ formatDate(session.completed_at) }}</span>
+            <span class="history-date" v-if="session.completed_at">{{ formatDate(session.completed_at) }}</span>
           </div>
           <div v-if="session.notes" class="history-notes">
             {{ truncateText(session.notes, 100) }}
@@ -579,7 +579,7 @@ const formatDuration = (seconds: number) => {
 }
 
 const formatDate = (dateString: string | undefined) => {
-  if (!dateString) return 'Never'
+  if (!dateString) return 'Not completed'
   const date = new Date(dateString)
   const now = new Date()
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60)
@@ -607,9 +607,45 @@ const getContextIcon = (type: string) => {
   return icons[type] || '📎'
 }
 
+// Start initial focus session for new projects
+const startInitialFocusSession = () => {
+  // Get initial session info from project metadata
+  const metadata = props.project?.metadata as any
+  const initialSession = metadata?.initialFocusSession
+  
+  if (initialSession) {
+    activeSession.value = {
+      id: generateId(),
+      task: initialSession.task || 'Define Core Vision and Architecture',
+      type: initialSession.type || 'research',
+      duration: initialSession.duration || 45 * 60,
+      elapsed: 0,
+      contexts: [],
+      notes: '',
+      started_at: new Date().toISOString()
+    }
+    
+    remainingTime.value = activeSession.value.duration
+    sessionNotes.value = ''
+    isPaused.value = false
+    
+    startTimer()
+    saveSessionToDatabase()
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadRecentSessions()
+  
+  // Check if this is an initial session from project creation
+  const route = useRoute()
+  if (route.query.initial === 'true' && props.project) {
+    // Auto-start focus session for new project
+    setTimeout(() => {
+      startInitialFocusSession()
+    }, 500)
+  }
 })
 
 onUnmounted(() => {

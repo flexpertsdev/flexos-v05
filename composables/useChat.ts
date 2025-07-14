@@ -8,6 +8,14 @@ import type {
   ThinkingStep,
   ActionConfig,
   StreamEvent,
+  StreamStartEvent,
+  StreamDeltaEvent,
+  StreamThinkingEvent,
+  StreamEntityEvent,
+  StreamActionEvent,
+  StreamRichMessageEvent,
+  StreamErrorEvent,
+  StreamDoneEvent,
   UseChatOptions,
   ChatState
 } from '~/types/chat'
@@ -64,7 +72,7 @@ export const useChat = (options: UseChatOptions = {}) => {
         .single()
         
       if (chatData?.chat_messages) {
-        state.messages = chatData.chat_messages.sort((a, b) => 
+        state.messages = chatData.chat_messages.sort((a: any, b: any) => 
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         )
       }
@@ -86,7 +94,7 @@ export const useChat = (options: UseChatOptions = {}) => {
         role: 'user',
         content,
         context_mode: mode,
-        contexts,
+        contexts: contexts as any,
         created_at: new Date().toISOString()
       }
       
@@ -206,57 +214,72 @@ export const useChat = (options: UseChatOptions = {}) => {
   // Handle incoming stream events
   const handleStreamEvent = (event: StreamEvent) => {
     switch (event.type) {
-      case 'start':
+      case 'start': {
+        const startEvent = event as StreamStartEvent
         if (state.streamingMessage) {
-          state.streamingMessage.id = event.messageId
+          state.streamingMessage.id = startEvent.messageId
         }
         break
+      }
         
-      case 'delta':
+      case 'delta': {
+        const deltaEvent = event as StreamDeltaEvent
         if (state.streamingMessage) {
-          state.streamingMessage.content = (state.streamingMessage.content || '') + event.content
+          state.streamingMessage.content = (state.streamingMessage.content || '') + deltaEvent.content
         }
         break
+      }
         
-      case 'thinking':
-        state.thinkingSteps.push(event.step)
-        onThinking?.(event.step)
+      case 'thinking': {
+        const thinkingEvent = event as StreamThinkingEvent
+        state.thinkingSteps.push(thinkingEvent.step)
+        onThinking?.(thinkingEvent.step)
         break
+      }
         
-      case 'entity':
+      case 'entity': {
+        const entityEvent = event as StreamEntityEvent
         if (state.streamingMessage) {
-          state.streamingMessage.created_entities?.push(event.entity)
+          state.streamingMessage.created_entities?.push(entityEvent.entity)
         }
-        onEntity?.(event.entity)
+        onEntity?.(entityEvent.entity)
         break
+      }
         
-      case 'action':
+      case 'action': {
+        const actionEvent = event as StreamActionEvent
         if (state.streamingMessage) {
-          state.streamingMessage.suggested_actions?.push(event.action)
+          state.streamingMessage.suggested_actions?.push(actionEvent.action)
         }
-        onAction?.(event.action as ActionConfig)
+        onAction?.(actionEvent.action as ActionConfig)
         break
+      }
         
-      case 'rich_message':
+      case 'rich_message': {
+        const richMessageEvent = event as StreamRichMessageEvent
         if (state.streamingMessage) {
-          state.streamingMessage.message_type = event.messageType
-          state.streamingMessage.message_data = event.data
+          state.streamingMessage.message_type = richMessageEvent.messageType
+          state.streamingMessage.message_data = richMessageEvent.data
         }
         break
+      }
         
-      case 'error':
-        state.error = new Error(event.error.message)
+      case 'error': {
+        const errorEvent = event as StreamErrorEvent
+        state.error = new Error(errorEvent.error.message)
         onError?.(state.error)
         break
+      }
         
-      case 'done':
-        finalizeStreamingMessage(event)
+      case 'done': {
+        finalizeStreamingMessage(event as StreamDoneEvent)
         break
+      }
     }
   }
   
   // Finalize the streaming message
-  const finalizeStreamingMessage = (event: StreamEvent) => {
+  const finalizeStreamingMessage = (event: StreamDoneEvent) => {
     if (state.streamingMessage) {
       const finalMessage = {
         ...state.streamingMessage,

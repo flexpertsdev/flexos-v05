@@ -78,7 +78,7 @@
         <div class="empty-icon">📦</div>
         <h2>No projects yet</h2>
         <p>Create your first project to get started with FlexOS</p>
-        <button @click="showNewProjectModal = true" class="cta-button">
+        <button @click="startProjectCreation" class="cta-button">
           Create your first project
         </button>
       </div>
@@ -87,13 +87,13 @@
       <div v-else class="projects-grid">
         <!-- New Project Card -->
         <div
-          @click="showNewProjectModal = true"
+          @click="startProjectCreation"
           class="project-card new-project-card"
         >
           <div class="new-project-content">
             <div class="new-project-icon">+</div>
             <h3 class="new-project-text">New Project</h3>
-            <p class="new-project-hint">Create a new FlexOS project</p>
+            <p class="new-project-hint">Start project discovery wizard</p>
           </div>
         </div>
         
@@ -130,8 +130,8 @@
       </div>
     </div>
 
-    <!-- New Project Modal -->
-    <Teleport to="body">
+    <!-- New Project Modal (Replaced by wizard) -->
+    <!-- <Teleport to="body">
       <div v-if="showNewProjectModal" class="modal-overlay" @click="closeNewProjectModal">
         <div class="modal" @click.stop>
           <h2 @click="handleModalHeaderClick">Create New Project</h2>
@@ -210,7 +210,7 @@
           </form>
         </div>
       </div>
-    </Teleport>
+    </Teleport> -->
 
     <!-- Click outside to close dropdown -->
     <div v-if="activeMenu" class="backdrop" @click="activeMenu = null"></div>
@@ -325,6 +325,11 @@ const createProject = async () => {
   
   // Navigate to project builder
   await router.push(`/project/${data.slug}`)
+}
+
+// Start project creation wizard
+const startProjectCreation = () => {
+  router.push('/wizard/project-discovery')
 }
 
 // Open project

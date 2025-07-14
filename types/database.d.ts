@@ -414,7 +414,10 @@ export interface Database {
           project_id: string
           user_id: string
           wizard_run_id: string | null
-          messages: Json
+          title: string | null
+          status: string
+          model: string
+          total_messages: number
           context: Json
           created_at: string
           updated_at: string
@@ -424,7 +427,10 @@ export interface Database {
           project_id: string
           user_id: string
           wizard_run_id?: string | null
-          messages?: Json
+          title?: string | null
+          status?: string
+          model?: string
+          total_messages?: number
           context?: Json
           created_at?: string
           updated_at?: string
@@ -434,8 +440,423 @@ export interface Database {
           project_id?: string
           user_id?: string
           wizard_run_id?: string | null
-          messages?: Json
+          title?: string | null
+          status?: string
+          model?: string
+          total_messages?: number
           context?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      chat_messages: {
+        Row: {
+          id: string
+          chat_id: string
+          project_id: string
+          user_id: string
+          role: 'user' | 'assistant' | 'system'
+          content: string | null
+          context_mode: 'focus' | 'builder' | 'wizard'
+          wizard_session_id: string | null
+          message_type: 'text' | 'thinking' | 'selection' | 'comparison' | 'form' | 'visual' | 'code' | 'design'
+          message_data: Json
+          is_streaming: boolean
+          stream_id: string | null
+          stream_completed: boolean
+          contexts: Json
+          created_entities: Json
+          suggested_actions: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          chat_id: string
+          project_id: string
+          user_id: string
+          role: 'user' | 'assistant' | 'system'
+          content?: string | null
+          context_mode?: 'focus' | 'builder' | 'wizard'
+          wizard_session_id?: string | null
+          message_type?: 'text' | 'thinking' | 'selection' | 'comparison' | 'form' | 'visual' | 'code' | 'design'
+          message_data?: Json
+          is_streaming?: boolean
+          stream_id?: string | null
+          stream_completed?: boolean
+          contexts?: Json
+          created_entities?: Json
+          suggested_actions?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          chat_id?: string
+          project_id?: string
+          user_id?: string
+          role?: 'user' | 'assistant' | 'system'
+          content?: string | null
+          context_mode?: 'focus' | 'builder' | 'wizard'
+          wizard_session_id?: string | null
+          message_type?: 'text' | 'thinking' | 'selection' | 'comparison' | 'form' | 'visual' | 'code' | 'design'
+          message_data?: Json
+          is_streaming?: boolean
+          stream_id?: string | null
+          stream_completed?: boolean
+          contexts?: Json
+          created_entities?: Json
+          suggested_actions?: Json
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      message_outputs: {
+        Row: {
+          id: string
+          message_id: string
+          output_type: string
+          entity_id: string
+          entity_table: string
+          entity_data: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          output_type: string
+          entity_id: string
+          entity_table: string
+          entity_data: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          output_type?: string
+          entity_id?: string
+          entity_table?: string
+          entity_data?: Json
+          created_at?: string
+        }
+      }
+      message_actions: {
+        Row: {
+          id: string
+          message_id: string
+          action_type: 'button' | 'suggestion' | 'quick_reply'
+          action_key: string
+          label: string
+          description: string | null
+          icon: string | null
+          style: Json
+          action_data: Json
+          requires_confirmation: boolean
+          is_enabled: boolean
+          was_used: boolean
+          used_at: string | null
+          used_by: string | null
+          display_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          message_id: string
+          action_type: 'button' | 'suggestion' | 'quick_reply'
+          action_key: string
+          label: string
+          description?: string | null
+          icon?: string | null
+          style?: Json
+          action_data: Json
+          requires_confirmation?: boolean
+          is_enabled?: boolean
+          was_used?: boolean
+          used_at?: string | null
+          used_by?: string | null
+          display_order?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          message_id?: string
+          action_type?: 'button' | 'suggestion' | 'quick_reply'
+          action_key?: string
+          label?: string
+          description?: string | null
+          icon?: string | null
+          style?: Json
+          action_data?: Json
+          requires_confirmation?: boolean
+          is_enabled?: boolean
+          was_used?: boolean
+          used_at?: string | null
+          used_by?: string | null
+          display_order?: number
+          created_at?: string
+        }
+      }
+      wizard_sessions: {
+        Row: {
+          id: string
+          user_id: string
+          project_id: string
+          wizard_type: string
+          status: 'active' | 'completed' | 'abandoned'
+          total_steps: number | null
+          completed_steps: string[]
+          current_step: string | null
+          collected_data: Json
+          pending_decisions: Json
+          started_at: string
+          completed_at: string | null
+          updated_at: string
+          expires_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          project_id: string
+          wizard_type: string
+          status?: 'active' | 'completed' | 'abandoned'
+          total_steps?: number | null
+          completed_steps?: string[]
+          current_step?: string | null
+          collected_data?: Json
+          pending_decisions?: Json
+          started_at?: string
+          completed_at?: string | null
+          updated_at?: string
+          expires_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          project_id?: string
+          wizard_type?: string
+          status?: 'active' | 'completed' | 'abandoned'
+          total_steps?: number | null
+          completed_steps?: string[]
+          current_step?: string | null
+          collected_data?: Json
+          pending_decisions?: Json
+          started_at?: string
+          completed_at?: string | null
+          updated_at?: string
+          expires_at?: string
+        }
+      }
+      attachments: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          message_id: string | null
+          attachment_type: 'file' | 'image' | 'document' | 'url' | 'project_context' | 'selection' | 'component_reference'
+          name: string
+          original_name: string | null
+          mime_type: string | null
+          size_bytes: number | null
+          storage_path: string | null
+          public_url: string | null
+          parsed_content: Json
+          metadata: Json
+          processing_status: 'pending' | 'processing' | 'completed' | 'failed'
+          processing_error: string | null
+          processing_attempts: number
+          created_at: string
+          processed_at: string | null
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          message_id?: string | null
+          attachment_type: 'file' | 'image' | 'document' | 'url' | 'project_context' | 'selection' | 'component_reference'
+          name: string
+          original_name?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          public_url?: string | null
+          parsed_content?: Json
+          metadata?: Json
+          processing_status?: 'pending' | 'processing' | 'completed' | 'failed'
+          processing_error?: string | null
+          processing_attempts?: number
+          created_at?: string
+          processed_at?: string | null
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          message_id?: string | null
+          attachment_type?: 'file' | 'image' | 'document' | 'url' | 'project_context' | 'selection' | 'component_reference'
+          name?: string
+          original_name?: string | null
+          mime_type?: string | null
+          size_bytes?: number | null
+          storage_path?: string | null
+          public_url?: string | null
+          parsed_content?: Json
+          metadata?: Json
+          processing_status?: 'pending' | 'processing' | 'completed' | 'failed'
+          processing_error?: string | null
+          processing_attempts?: number
+          created_at?: string
+          processed_at?: string | null
+        }
+      }
+      project_flows: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          name: string
+          description: string | null
+          nodes: Json
+          edges: Json
+          viewport: Json
+          layout_type: 'auto' | 'hierarchical' | 'force' | 'manual'
+          layout_config: Json
+          node_groups: Json
+          version: number
+          is_current: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          name?: string
+          description?: string | null
+          nodes?: Json
+          edges?: Json
+          viewport?: Json
+          layout_type?: 'auto' | 'hierarchical' | 'force' | 'manual'
+          layout_config?: Json
+          node_groups?: Json
+          version?: number
+          is_current?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          name?: string
+          description?: string | null
+          nodes?: Json
+          edges?: Json
+          viewport?: Json
+          layout_type?: 'auto' | 'hierarchical' | 'force' | 'manual'
+          layout_config?: Json
+          node_groups?: Json
+          version?: number
+          is_current?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      flow_node_templates: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          node_type: string
+          default_data: Json
+          default_style: Json
+          allowed_source_types: string[]
+          allowed_target_types: string[]
+          max_connections: number | null
+          icon: string | null
+          color: string | null
+          is_system: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          node_type: string
+          default_data?: Json
+          default_style?: Json
+          allowed_source_types?: string[]
+          allowed_target_types?: string[]
+          max_connections?: number | null
+          icon?: string | null
+          color?: string | null
+          is_system?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          node_type?: string
+          default_data?: Json
+          default_style?: Json
+          allowed_source_types?: string[]
+          allowed_target_types?: string[]
+          max_connections?: number | null
+          icon?: string | null
+          color?: string | null
+          is_system?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      builder_states: {
+        Row: {
+          id: string
+          project_id: string
+          user_id: string
+          current_mode: 'builder' | 'focus' | 'map'
+          active_tab: string
+          panel_sizes: Json
+          collapsed_panels: string[]
+          panel_order: string[]
+          focus_preferences: Json
+          map_preferences: Json
+          preferences: Json
+          last_active_at: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          user_id: string
+          current_mode?: 'builder' | 'focus' | 'map'
+          active_tab?: string
+          panel_sizes?: Json
+          collapsed_panels?: string[]
+          panel_order?: string[]
+          focus_preferences?: Json
+          map_preferences?: Json
+          preferences?: Json
+          last_active_at?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          user_id?: string
+          current_mode?: 'builder' | 'focus' | 'map'
+          active_tab?: string
+          panel_sizes?: Json
+          collapsed_panels?: string[]
+          panel_order?: string[]
+          focus_preferences?: Json
+          map_preferences?: Json
+          preferences?: Json
+          last_active_at?: string
           created_at?: string
           updated_at?: string
         }

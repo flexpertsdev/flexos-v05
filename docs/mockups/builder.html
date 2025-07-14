@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlexOS Builder</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* Desktop Styles */
+        .desktop-layout {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+        }
+        
+        .nav-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .mode-selector {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .chat-panel, .project-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-panel {
+            border-right: 1px solid #333;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        .chat-input-container {
+            padding: 1rem;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+        
+        .project-tabs {
+            display: flex;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+        }
+        
+        .tab-button {
+            padding: 1rem 1.5rem;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .tab-button.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+        
+        .project-content {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        /* Mobile Styles */
+        .mobile-layout {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .app-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+        }
+        
+        .logo-button {
+            width: 40px;
+            height: 40px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .mobile-tabs {
+            display: flex;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+        }
+        
+        .mobile-tab {
+            flex: 1;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .mobile-tab.active {
+            color: #fff;
+            border-bottom-color: #4CAF50;
+        }
+        
+        .mobile-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .panel-selector {
+            padding: 1rem;
+            background: #2a2a2a;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .bottom-sheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2a2a2a;
+            border-top: 1px solid #333;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+        
+        .bottom-sheet.show {
+            transform: translateY(0);
+        }
+        
+        .bottom-sheet-option {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: none;
+            border: none;
+            color: #fff;
+            text-align: left;
+            cursor: pointer;
+            border-bottom: 1px solid #333;
+        }
+        
+        .bottom-sheet-option:hover {
+            background: #333;
+        }
+        
+        button {
+            background: #333;
+            color: #fff;
+            border: 1px solid #444;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: #444;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .desktop-layout {
+                display: none;
+            }
+            
+            .mobile-layout {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Desktop Layout -->
+    <div class="desktop-layout">
+        <!-- Top Navigation Bar -->
+        <nav class="top-nav">
+            <div>FlexOS Builder</div>
+            <div>E-commerce Store</div>
+            <div class="nav-controls">
+                <select class="mode-selector">
+                    <option>Builder</option>
+                    <option>Focus</option>
+                    <option>Map</option>
+                </select>
+                <button>⚙️</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Chat Panel -->
+            <div class="chat-panel">
+                <div class="panel-header">
+                    <span>AI Assistant</span>
+                    <button>Clear</button>
+                </div>
+                
+                <div class="chat-messages">
+                    <div style="background: #333; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <strong>AI:</strong> Hi! I'm here to help you build your e-commerce store. What would you like to work on today?
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input class="chat-input" placeholder="Ask about your project..." />
+                    <button>📎</button>
+                </div>
+            </div>
+
+            <!-- Project Panel -->
+            <div class="project-panel">
+                <div class="project-tabs">
+                    <button class="tab-button active">Vision</button>
+                    <button class="tab-button">Pages</button>
+                    <button class="tab-button">Features</button>
+                    <button class="tab-button">Journeys</button>
+                    <button class="tab-button">Design</button>
+                    <button class="tab-button">Database</button>
+                </div>
+                
+                <div class="project-content">
+                    <h2 style="color: #4CAF50; margin-bottom: 1rem;">E-commerce Store</h2>
+                    <p style="margin-bottom: 2rem;">A modern, responsive e-commerce platform that provides seamless shopping experiences across all devices. Built with performance and user experience at its core.</p>
+                    
+                    <h3 style="margin-bottom: 1rem;">Key Objectives</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;">• Fast, responsive design for all devices</li>
+                        <li style="margin-bottom: 0.5rem;">• Intuitive product discovery and search</li>
+                        <li style="margin-bottom: 0.5rem;">• Secure and streamlined checkout process</li>
+                        <li style="margin-bottom: 0.5rem;">• Real-time inventory management</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Layout -->
+    <div class="mobile-layout">
+        <!-- App Bar -->
+        <header class="app-bar">
+            <button class="logo-button">F</button>
+            <select class="mode-selector">
+                <option>Builder</option>
+                <option>Focus</option>
+                <option>Map</option>
+            </select>
+            <button>⚙️</button>
+        </header>
+
+        <!-- Tab Navigation -->
+        <div class="mobile-tabs">
+            <button class="mobile-tab active" onclick="switchMobileTab('chat')">Chat</button>
+            <button class="mobile-tab" onclick="switchMobileTab('project')">Project</button>
+        </div>
+
+        <!-- Mobile Content -->
+        <div class="mobile-content">
+            <!-- Chat View -->
+            <div id="chat-view" style="display: flex; flex-direction: column; height: 100%;">
+                <div class="panel-header">
+                    <span>AI Assistant</span>
+                    <button>Clear</button>
+                </div>
+                
+                <div class="chat-messages" style="flex: 1;">
+                    <div style="background: #333; padding: 1rem; border-radius: 8px; margin: 1rem;">
+                        <strong>AI:</strong> Hi! I'm here to help you build your e-commerce store. What would you like to work on today?
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input class="chat-input" placeholder="Ask about your project..." />
+                    <button>📎</button>
+                </div>
+            </div>
+
+            <!-- Project View -->
+            <div id="project-view" style="display: none; flex-direction: column; height: 100%;">
+                <div class="panel-selector" onclick="togglePanelSelector()">
+                    <span>Vision</span>
+                    <span>▼</span>
+                </div>
+                
+                <div class="project-content" style="flex: 1;">
+                    <h2 style="color: #4CAF50; margin-bottom: 1rem;">E-commerce Store</h2>
+                    <p style="margin-bottom: 2rem;">A modern, responsive e-commerce platform that provides seamless shopping experiences across all devices.</p>
+                    
+                    <h3 style="margin-bottom: 1rem;">Key Objectives</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;">• Fast, responsive design</li>
+                        <li style="margin-bottom: 0.5rem;">• Intuitive product discovery</li>
+                        <li style="margin-bottom: 0.5rem;">• Secure checkout process</li>
+                        <li style="margin-bottom: 0.5rem;">• Real-time inventory</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel Selector Bottom Sheet -->
+        <div id="bottom-sheet" class="bottom-sheet">
+            <button class="bottom-sheet-option" onclick="selectPanel('Vision')">Vision</button>
+            <button class="bottom-sheet-option" onclick="selectPanel('Pages')">Pages</button>
+            <button class="bottom-sheet-option" onclick="selectPanel('Features')">Features</button>
+            <button class="bottom-sheet-option" onclick="selectPanel('Journeys')">Journeys</button>
+            <button class="bottom-sheet-option" onclick="selectPanel('Design')">Design</button>
+            <button class="bottom-sheet-option" onclick="selectPanel('Database')">Database</button>
+        </div>
+    </div>
+
+    <script>
+        function switchMobileTab(tab) {
+            const chatView = document.getElementById('chat-view');
+            const projectView = document.getElementById('project-view');
+            const tabs = document.querySelectorAll('.mobile-tab');
+            
+            tabs.forEach(t => t.classList.remove('active'));
+            
+            if (tab === 'chat') {
+                chatView.style.display = 'flex';
+                projectView.style.display = 'none';
+                tabs[0].classList.add('active');
+            } else {
+                chatView.style.display = 'none';
+                projectView.style.display = 'flex';
+                tabs[1].classList.add('active');
+            }
+        }
+        
+        function togglePanelSelector() {
+            const bottomSheet = document.getElementById('bottom-sheet');
+            bottomSheet.classList.toggle('show');
+        }
+        
+        function selectPanel(panel) {
+            document.querySelector('.panel-selector span').textContent = panel;
+            togglePanelSelector();
+        }
+    </script>
+</body>
+</html>

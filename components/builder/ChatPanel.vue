@@ -84,7 +84,7 @@
           
           <!-- Streaming content -->
           <div class="message-content">
-            <div v-if="streamingMessage.content" v-html="formatMessageContent(streamingMessage.content)"></div>
+            <div v-if="streamingMessage?.content" v-html="formatMessageContent(streamingMessage.content)"></div>
             <div v-else class="typing-indicator">
               <span></span>
               <span></span>
@@ -149,11 +149,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, defineAsyncComponent, watch } from 'vue'
 import type { PropType } from 'vue'
 import type { Database } from '~/types/database'
 import type { Context, ChatMode, ActionConfig } from '~/types/chat'
-import { useChat } from '~/composables/useChat'
 
 // Import rich message components dynamically
 const ThinkingDisplay = defineAsyncComponent(() => import('./messages/ThinkingDisplay.vue'))
@@ -174,25 +173,12 @@ const emit = defineEmits<{
   'action-executed': [action: ActionConfig]
 }>()
 
-// Chat state and composable
-const {
-  messages,
-  isStreaming,
-  streamingMessage,
-  thinkingSteps,
-  error,
-  sendMessage,
-  executeAction: executeChatAction,
-  clearChat: clearChatMessages
-} = useChat({
-  mode: props.mode,
-  onEntity: (entity) => {
-    console.log('Entity created:', entity)
-  },
-  onAction: (action) => {
-    console.log('Action suggested:', action)
-  }
-})
+// Simple chat state (no auth for now)
+const messages = ref<any[]>([])
+const isStreaming = ref(false)
+const streamingMessage = ref<any>(null)
+const thinkingSteps = ref<any[]>([])
+const error = ref<Error | null>(null)
 
 // Local state
 const chatInput = ref('')
@@ -214,29 +200,79 @@ const handleSendMessage = async () => {
   await nextTick()
   handleChatInput({ target: { value: '' } } as any)
   
-  // Send with attached contexts
-  await sendMessage(message, attachedContexts.value)
+  // Add user message
+  messages.value.push({
+    id: Date.now().toString(),
+    role: 'user',
+    content: message,
+    created_at: new Date().toISOString()
+  })
   
-  // Clear contexts after sending
+  // Clear contexts
   attachedContexts.value = []
+  
+  // Start loading
+  isStreaming.value = true
+  error.value = null
+  
+  try {
+    // Call Netlify function (works both locally and deployed)
+    const response = await $fetch<{ content: string }>('/.netlify/functions/chat', {
+    method: 'POST',
+    body: {
+    message,
+    history: messages.value.slice(-10).map(m => ({
+    role: m.role,
+    content: m.content
+    }))
+    }
+    })
+    
+    // Add assistant message
+    messages.value.push({
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: response.content,
+      created_at: new Date().toISOString()
+    })
+  } catch (err: any) {
+    console.error('Chat error:', err)
+    error.value = err
+    messages.value.push({
+      id: Date.now().toString(),
+      role: 'assistant',
+      content: 'Sorry, I encountered an error. Please try again.',
+      created_at: new Date().toISOString()
+    })
+  } finally {
+    isStreaming.value = false
+  }
   
   // Scroll to bottom
   scrollChatToBottom()
 }
 
-// Retry last message
+// Retry last message  
 const retryLastMessage = async () => {
   if (lastUserMessage.value) {
-    await sendMessage(lastUserMessage.value, attachedContexts.value)
-    scrollChatToBottom()
+    // Remove last error message if any
+    if (messages.value.length > 0 && messages.value[messages.value.length - 1].role === 'assistant') {
+      messages.value.pop()
+    }
+    error.value = null
+    
+    // Resend
+    chatInput.value = lastUserMessage.value
+    await handleSendMessage()
   }
 }
 
 // Clear chat
 const clearChat = () => {
-  clearChatMessages()
+  messages.value = []
   lastUserMessage.value = ''
   attachedContexts.value = []
+  error.value = null
 }
 
 // Toggle thinking display
@@ -319,7 +355,7 @@ const handleRichAction = (action: any) => {
 
 // Execute action
 const executeAction = async (action: ActionConfig) => {
-  await executeChatAction(action)
+  console.log('Execute action:', action)
   emit('action-executed', action)
 }
 

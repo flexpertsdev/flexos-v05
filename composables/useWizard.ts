@@ -298,7 +298,37 @@ export function useWizard() {
     const typingMessage = addAssistantMessage('', true)
     
     try {
-      // Generate output
+      // Special handling for project-discovery wizard
+      if (wizard.value.id === 'project-discovery') {
+        const router = useRouter()
+        
+        // Create project from wizard answers
+        const response = await $fetch<{ project?: { name: string; slug: string } }>('/api/projects/create-from-wizard', {
+          method: 'POST',
+          body: {
+            wizardAnswers: answers.value
+          }
+        })
+        
+        if (response.project) {
+          messages.value = messages.value.filter(m => m.id !== typingMessage.id)
+          
+          // Add completion message
+          const completionMessage = `🎉 Excellent! I've created your project "${response.project.name}".\n\nTaking you to Focus Mode to define your core vision...`
+          addAssistantMessage(completionMessage)
+          
+          // Wait a moment then redirect to project with focus mode
+          setTimeout(() => {
+            if (response.project) {
+              router.push(`/project/${response.project.slug}?mode=focus&initial=true`)
+            }
+          }, 2000)
+          
+          return
+        }
+      }
+      
+      // Default wizard completion behavior
       const response = await $fetch<WizardGenerateResponse>('/api/wizards/generate', {
         method: 'POST',
         body: {

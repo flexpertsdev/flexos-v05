@@ -1,12 +1,27 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import { defineNuxtConfig } from 'nuxt/config'
+
 export default defineNuxtConfig({
   devtools: { enabled: true },
+  compatibilityDate: '2025-07-14',
   
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
-    '@vite-pwa/nuxt'
+    '@vite-pwa/nuxt',
+    '@nuxtjs/supabase'
   ],
+
+  supabase: {
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_ANON_KEY,
+    serviceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    redirectOptions: {
+      login: '/auth/signin',
+      callback: '/dashboard',
+      exclude: ['/', '/auth/*', '/wizards/*']
+    }
+  },
 
   css: [
     '~/assets/css/main.css'
@@ -32,6 +47,8 @@ export default defineNuxtConfig({
   runtimeConfig: {
     openaiApiKey: process.env.OPENAI_API_KEY,
     anthropicApiKey: process.env.ANTHROPIC_API_KEY,
+    anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-3-opus-20240229',
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     public: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,

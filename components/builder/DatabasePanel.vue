@@ -147,6 +147,16 @@ interface Props {
   project?: Project | null
 }
 
+interface FieldDefinition {
+  type: string
+  required?: boolean
+  unique?: boolean
+  default?: any
+  relation?: {
+    model: string
+  }
+}
+
 interface Field {
   name: string
   type: string
@@ -158,7 +168,7 @@ interface Field {
 
 interface Model {
   type: 'collection' | 'document' | 'embedded'
-  fields: Record<string, Field>
+  fields: Record<string, FieldDefinition>
 }
 
 interface DatabaseSchema {
@@ -240,7 +250,7 @@ const editModel = (modelName: string) => {
     editingModel.fields = Object.entries(model.fields).map(([name, field]) => ({
       name,
       type: field.type,
-      relation: field.relation
+      relation: field.relation ? field.relation.model : undefined
     }))
     showModelEditor.value = true
   }
@@ -262,7 +272,7 @@ const saveModel = () => {
   if (!editingModel.name.trim()) return
   
   // Convert fields array to object
-  const fieldsObject: Record<string, Field> = {}
+  const fieldsObject: Record<string, FieldDefinition> = {}
   editingModel.fields.forEach(field => {
     if (field.name.trim()) {
       fieldsObject[field.name] = {
