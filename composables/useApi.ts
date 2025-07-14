@@ -233,7 +233,7 @@ export function useApi(baseURL?: string) {
 }
 
 // Specialized composable for async state management
-export function useAsyncData<T>(
+export function useApiAsync<T>(
   key: string,
   fetcher: () => Promise<T>,
   options?: {

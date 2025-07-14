@@ -4,7 +4,8 @@ import type {
   ExtractedDataType, 
   ExtractedView,
   ActionVerb,
-  DataCategory 
+  DataCategory,
+  DataOperation 
 } from '~/types/blueprint'
 
 // Common action verbs in app descriptions
@@ -212,7 +213,7 @@ function createViewName(base: string): string {
   return name.endsWith('View') ? name : `${name}View`
 }
 
-function inferOperations(dataType: string, category: DataCategory): string[] {
+function inferOperations(dataType: string, category: DataCategory): DataOperation[] {
   switch (category) {
     case 'stored':
       return ['create', 'read', 'update', 'delete', 'query']
@@ -286,7 +287,7 @@ export function extractBlueprintUpdates(text: string): BlueprintUpdate {
     dataTypes: dataTypes.map(dt => ({
       name: dt.name,
       category: dt.category,
-      operations: dt.operations
+      operations: dt.operations as DataOperation[]
     })),
     
     views: views.map(v => ({
