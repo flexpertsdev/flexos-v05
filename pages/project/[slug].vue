@@ -48,7 +48,7 @@
         
         <main v-else class="main-content-alt">
             <FocusModeChat v-if="currentMode === 'focus' && project" :project="project" />
-            <div v-if="currentMode === 'map'" class="map-mode-desktop"><h2>Project Map</h2></div>
+            <MapModePlaceholder v-if="currentMode === 'map'" />
         </main>
       </div>
 
@@ -65,13 +65,13 @@
         <div class="mobile-tabs">
           <button @click="activeMobileTab = 'chat'" class="mobile-tab" :class="{ active: activeMobileTab === 'chat' }">Chat</button>
           <button @click="activeMobileTab = 'project'" class="mobile-tab" :class="{ active: activeMobileTab === 'project' }">Project</button>
-          <button @click="activeMobileTab = 'focus'" class="mobile-tab" :class="{ active: activeMobileTab === 'focus' }">Focus</button>
+          <button @click="activeMobileTab = 'map'" class="mobile-tab" :class="{ active: activeMobileTab === 'map' }">Map</button>
         </div>
 
         <main class="mobile-content" v-if="project">
           <ChatPanel v-show="activeMobileTab === 'chat'" :project="project" is-mobile />
           <ProjectPanel v-show="activeMobileTab === 'project'" :project="project" v-model:active-tab="activeProjectTab" is-mobile />
-          <FocusModeChat v-show="activeMobileTab === 'focus'" :project="project" is-mobile />
+          <MapModePlaceholder v-show="activeMobileTab === 'map'" />
         </main>
       </div>
     </template>
@@ -87,6 +87,7 @@ import type { Database } from '~/types/database'
 const ChatPanel = defineAsyncComponent(() => import('~/components/builder/ChatPanel.vue'))
 const ProjectPanel = defineAsyncComponent(() => import('~/components/builder/ProjectPanel.vue'))
 const FocusModeChat = defineAsyncComponent(() => import('~/components/builder/FocusModePlaceholder.vue'))
+const MapModePlaceholder = defineAsyncComponent(() => import('~/components/builder/MapModePlaceholder.vue'))
 
 // Types
 type Project = Database['public']['Tables']['projects']['Row']

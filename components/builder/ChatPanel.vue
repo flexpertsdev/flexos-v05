@@ -149,7 +149,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, defineAsyncComponent, watch } from 'vue'
+import { ref, computed, nextTick, defineAsyncComponent, watch, onMounted } from 'vue'
 import type { PropType } from 'vue'
 import type { Database } from '~/types/database'
 import type { Context, ChatMode, ActionConfig } from '~/types/chat'
@@ -173,7 +173,12 @@ const emit = defineEmits<{
   'action-executed': [action: ActionConfig]
 }>()
 
-// Simple chat state (no auth for now)
+// Auth and DB
+const { user } = useAuth()
+const supabase = useSupabase()
+
+// Chat state
+const currentChatId = ref<string | null>(null)
 const messages = ref<any[]>([])
 const isStreaming = ref(false)
 const streamingMessage = ref<any>(null)
@@ -190,7 +195,7 @@ const lastUserMessage = ref('')
 
 // Handle sending messages
 const handleSendMessage = async () => {
-  if (!chatInput.value.trim() || isStreaming.value) return
+  if (!chatInput.value.trim() || isStreaming.value || !props.project) return
   
   const message = chatInput.value
   lastUserMessage.value = message
@@ -198,15 +203,27 @@ const handleSendMessage = async () => {
   
   // Reset textarea height
   await nextTick()
-  handleChatInput({ target: { value: '' } } as any)
+  const textarea = document.querySelector('.chat-input') as HTMLTextAreaElement
+  if (textarea) {
+    textarea.style.height = 'auto'
+  }
   
-  // Add user message
-  messages.value.push({
-    id: Date.now().toString(),
-    role: 'user',
+  // Add user message to UI immediately
+  const tempUserMessage = {
+    id: `temp-${Date.now()}`,
+    chat_id: currentChatId.value || '',
+    project_id: props.project.id,
+    user_id: user.value?.id,
+    role: 'user' as const,
     content: message,
-    created_at: new Date().toISOString()
-  })
+    context_mode: props.mode,
+    contexts: attachedContexts.value,
+    message_type: 'text' as const,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
+  
+  messages.value.push(tempUserMessage)
   
   // Clear contexts
   attachedContexts.value = []
@@ -216,34 +233,57 @@ const handleSendMessage = async () => {
   error.value = null
   
   try {
-    // Call Netlify function (works both locally and deployed)
-    const response = await $fetch<{ content: string }>('/.netlify/functions/chat', {
-    method: 'POST',
-    body: {
-    message,
-    history: messages.value.slice(-10).map(m => ({
-    role: m.role,
-    content: m.content
-    }))
-    }
+    // Use Anthropic endpoint
+    const endpoint = '/api/chat/anthropic'
+    const response = await $fetch<{ content: string; error?: boolean }>(endpoint, {
+      method: 'POST',
+      body: {
+        message,
+        history: messages.value.slice(-10).map(m => ({
+          role: m.role,
+          content: m.content
+        }))
+      }
     })
     
-    // Add assistant message
-    messages.value.push({
-      id: Date.now().toString(),
-      role: 'assistant',
+    // Add assistant message to UI
+    const tempAssistantMessage = {
+      id: `temp-${Date.now() + 1}`,
+      chat_id: currentChatId.value || '',
+      project_id: props.project.id,
+      user_id: user.value?.id,
+      role: 'assistant' as const,
       content: response.content,
-      created_at: new Date().toISOString()
-    })
+      context_mode: props.mode,
+      message_type: 'text' as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    
+    messages.value.push(tempAssistantMessage)
+    
+    // Save to database in background (optional)
+    saveMessagesToDatabase()
+    
   } catch (err: any) {
     console.error('Chat error:', err)
     error.value = err
-    messages.value.push({
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: 'Sorry, I encountered an error. Please try again.',
-      created_at: new Date().toISOString()
-    })
+    
+    // Add error message
+    const errorMessage = {
+      id: `error-${Date.now()}`,
+      chat_id: currentChatId.value || '',
+      project_id: props.project.id,
+      user_id: user.value?.id,
+      role: 'assistant' as const,
+      content: `Sorry, I encountered an error: ${err.message || 'Unknown error'}`,
+      context_mode: props.mode,
+      message_type: 'text' as const,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }
+    
+    messages.value.push(errorMessage)
   } finally {
     isStreaming.value = false
   }
@@ -359,6 +399,12 @@ const executeAction = async (action: ActionConfig) => {
   emit('action-executed', action)
 }
 
+// Save messages to database (optional, in background)
+const saveMessagesToDatabase = async () => {
+  // This is optional - you can implement this later
+  // For now, just keeping messages in memory
+}
+
 // Scroll to bottom
 const scrollChatToBottom = () => {
   nextTick(() => {
@@ -371,9 +417,17 @@ const scrollChatToBottom = () => {
 // Handle textarea auto-resize
 const handleChatInput = (event: Event) => {
   const textarea = event.target as HTMLTextAreaElement
+  if (!textarea) return
+  
   textarea.style.height = 'auto'
   textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
 }
+
+// Load existing messages on mount
+onMounted(async () => {
+  // Temporarily disabled database loading to simplify debugging
+  // You can re-enable this later when everything is working
+})
 
 // Watch for new messages to scroll
 watch(messages, () => {
