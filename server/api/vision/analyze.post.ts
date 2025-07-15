@@ -1,4 +1,4 @@
-import { serverSupabaseServiceRole } from '#supabase/server'
+import { serverSupabaseServiceRole, serverSupabaseUser } from '#supabase/server'
 import OpenAI from 'openai'
 
 const openai = new OpenAI({
@@ -8,6 +8,14 @@ const openai = new OpenAI({
 export default defineEventHandler(async (event) => {
   // Get service role client for server-side operations
   const supabase = await serverSupabaseServiceRole(event)
+  const user = await serverSupabaseUser(event)
+  
+  if (!user) {
+    throw createError({
+      statusCode: 401,
+      statusMessage: 'Unauthorized'
+    })
+  }
   
   const { projectId } = await readBody(event)
   
@@ -21,7 +29,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Fetch all messages from the project
     const { data: messages, error: messagesError } = await supabase
-      .from('messages')
+      .from('chat_messages')
       .select('content, role')
       .eq('project_id', projectId)
       .order('created_at', { ascending: true })
@@ -37,11 +45,9 @@ export default defineEventHandler(async (event) => {
 
     // 2. Get existing vision if any
     const { data: existingVision } = await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .select('*')
       .eq('project_id', projectId)
-      .order('version', { ascending: false })
-      .limit(1)
       .single()
 
     // 3. Prepare conversation context
@@ -110,16 +116,22 @@ export default defineEventHandler(async (event) => {
     // 5. Save or update vision document
     const visionRecord = {
       project_id: projectId,
+      user_id: user.id,
+      app_name: visionData.project_name,
+      app_tagline: visionData.tagline,
+      app_description: visionData.description,
+      target_users: visionData.target_audience ? [visionData.target_audience] : [],
+      pain_points: visionData.problems || [],
+      core_features: visionData.features?.core || [],
+      nice_to_haves: visionData.features?.nice_to_have || [],
+      design_principles: visionData.design_principles || [],
       version: (existingVision?.version || 0) + 1,
-      status: 'ready',
-      ...visionData,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+      last_updated: new Date().toISOString()
     }
 
     const { data: savedVision, error: saveError } = await supabase
-      .from('project_visions')
-      .insert(visionRecord)
+      .from('vision_documents')
+      .upsert(visionRecord)
       .select()
       .single()
 

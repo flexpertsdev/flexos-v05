@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   try {
     // 1. Get the vision document
     const { data: vision, error: visionError } = await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .select('*')
       .eq('id', visionId)
       .single()
@@ -35,7 +35,7 @@ export default defineEventHandler(async (event) => {
 
     // 2. Update vision status
     await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .update({ status: 'generating' })
       .eq('id', visionId)
 
@@ -176,7 +176,7 @@ export default defineEventHandler(async (event) => {
 
     // 5. Update vision status back to ready
     await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .update({ status: 'ready' })
       .eq('id', visionId)
 
@@ -191,7 +191,7 @@ export default defineEventHandler(async (event) => {
     
     // Reset vision status on error
     await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .update({ status: 'ready' })
       .eq('id', visionId)
     

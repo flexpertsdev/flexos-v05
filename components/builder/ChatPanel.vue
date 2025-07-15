@@ -502,8 +502,37 @@ const executeAction = async (action: ActionConfig) => {
 
 // Save messages to database (optional, in background)
 const saveMessagesToDatabase = async () => {
-  // This is optional - you can implement this later
-  // For now, just keeping messages in memory
+  if (!props.project?.id || messages.value.length === 0) return
+  
+  try {
+    // Save only the last few messages to avoid bulk operations
+    const recentMessages = messages.value.slice(-5)
+    
+    for (const message of recentMessages) {
+      // Skip if message already has an ID (already saved)
+      if (message.id && !message.id.startsWith('temp-')) continue
+      
+      const messageData = {
+        chat_id: message.chat_id || currentChatId.value,
+        role: message.role,
+        content: message.content,
+        context_mode: message.context_mode || currentMode.value,
+        message_type: message.message_type || 'text',
+        message_data: message.message_data || {},
+        contexts: message.contexts || attachedContexts.value,
+        created_entities: message.created_entities || [],
+        suggested_actions: message.suggested_actions || []
+      }
+      
+      await $fetch(`/api/projects/${props.project.id}/messages`, {
+        method: 'POST',
+        body: messageData
+      })
+    }
+  } catch (error) {
+    console.error('Failed to save messages:', error)
+    // Don't throw - this is a background operation
+  }
 }
 
 // Scroll to bottom

@@ -223,10 +223,13 @@ import { ref, computed, watch, onMounted } from 'vue'
 interface VisionDocument {
   id?: string
   project_id: string
-  elevator_pitch: string
-  user_personas: string[]
-  pain_points: string[]
-  key_features: string[]
+  elevator_pitch?: string
+  target_users?: any[] // JSONB array from database
+  pain_points?: any[] // JSONB array from database  
+  core_features?: any[] // JSONB array from database
+  // Legacy field names for backward compatibility
+  user_personas?: string[]
+  key_features?: string[]
 }
 
 const props = defineProps<{
@@ -234,6 +237,7 @@ const props = defineProps<{
 }>()
 
 const supabase = useSupabaseTyped()
+const user = useSupabaseUser()
 const visionDoc = ref<VisionDocument | null>(null)
 const editingDoc = ref<VisionDocument | null>(null)
 const isEditing = ref(false)
@@ -247,7 +251,14 @@ const loadVisionDoc = async () => {
     .single()
   
   if (data) {
-    visionDoc.value = data
+    // Transform database format to component format
+    visionDoc.value = {
+      ...data,
+      // Map new field names to old ones for compatibility
+      user_personas: data.target_users || data.user_personas || [],
+      key_features: data.core_features || data.key_features || [],
+      pain_points: data.pain_points || []
+    }
   }
 }
 
@@ -258,12 +269,19 @@ const saveChanges = async () => {
   const dataToSave = editingDoc.value || visionDoc.value
   console.log('Saving vision document:', dataToSave)
   
+  // Transform component format to database format
+  const dbData = {
+    project_id: props.projectId,
+    user_id: user.value?.id,
+    app_description: dataToSave?.elevator_pitch || '',
+    target_users: dataToSave?.user_personas || [],
+    pain_points: dataToSave?.pain_points || [],
+    core_features: dataToSave?.key_features || []
+  }
+  
   const { data, error } = await supabase
     .from('vision_documents')
-    .upsert({
-      ...dataToSave,
-      project_id: props.projectId
-    } as any)
+    .upsert(dbData)
     .select()
   
   if (error) {
@@ -333,10 +351,13 @@ const updateVision = (updates: Partial<VisionDocument>) => {
     visionDoc.value.elevator_pitch = updates.elevator_pitch
   }
   
-  if (updates.user_personas) {
+  // Handle both old and new field names
+  if (updates.user_personas || updates.target_users) {
+    const personas = updates.user_personas || updates.target_users || []
     visionDoc.value.user_personas = [
-      ...new Set([...(visionDoc.value.user_personas || []), ...updates.user_personas])
+      ...new Set([...(visionDoc.value.user_personas || []), ...personas])
     ]
+    visionDoc.value.target_users = visionDoc.value.user_personas
   }
   
   if (updates.pain_points) {
@@ -345,10 +366,12 @@ const updateVision = (updates: Partial<VisionDocument>) => {
     ]
   }
   
-  if (updates.key_features) {
+  if (updates.key_features || updates.core_features) {
+    const features = updates.key_features || updates.core_features || []
     visionDoc.value.key_features = [
-      ...new Set([...(visionDoc.value.key_features || []), ...updates.key_features])
+      ...new Set([...(visionDoc.value.key_features || []), ...features])
     ]
+    visionDoc.value.core_features = visionDoc.value.key_features
   }
   
   console.log('Updated visionDoc:', visionDoc.value)

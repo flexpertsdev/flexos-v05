@@ -77,9 +77,21 @@ export const useBlueprint = () => {
         }
       }
       
+      // First get the vision document ID for this project
+      const { data: visionDoc, error: visionError } = await supabase
+        .from('vision_documents')
+        .select('id')
+        .eq('project_id', projectId)
+        .single()
+      
+      if (visionError || !visionDoc) {
+        console.error('Failed to find vision document:', visionError)
+        return
+      }
+      
       // Save to database using the merge function
       const { error } = await supabase.rpc('merge_blueprint_update', {
-        doc_id: projectId,
+        doc_id: visionDoc.id,
         new_actions: update.actions || [],
         new_data: update.dataTypes || [],
         new_views: update.views || [],

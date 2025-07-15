@@ -62,27 +62,29 @@
       </div>
 
       <!-- Mobile Layout -->
-      <div v-else class="mobile-layout">
-        <header class="app-bar">
-          <NuxtLink to="/dashboard" class="logo-button">F</NuxtLink>
-          <h1 class="mobile-project-title">{{ project?.name || 'Project' }}</h1>
-          <button @click="openSettings" class="settings-btn">
-            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
-          </button>
-        </header>
+      <ClientOnly>
+        <div v-if="isMobile" class="mobile-layout">
+          <header class="app-bar">
+            <NuxtLink to="/dashboard" class="logo-button">F</NuxtLink>
+            <h1 class="mobile-project-title">{{ project?.name || 'Project' }}</h1>
+            <button @click="openSettings" class="settings-btn">
+              <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+            </button>
+          </header>
 
-        <div class="mobile-tabs">
-          <button @click="activeMobileTab = 'chat'" class="mobile-tab" :class="{ active: activeMobileTab === 'chat' }">Chat</button>
-          <button @click="activeMobileTab = 'project'" class="mobile-tab" :class="{ active: activeMobileTab === 'project' }">Project</button>
-          <button @click="activeMobileTab = 'map'" class="mobile-tab" :class="{ active: activeMobileTab === 'map' }">Map</button>
+          <div class="mobile-tabs">
+            <button @click="activeMobileTab = 'chat'" class="mobile-tab" :class="{ active: activeMobileTab === 'chat' }">Chat</button>
+            <button @click="activeMobileTab = 'project'" class="mobile-tab" :class="{ active: activeMobileTab === 'project' }">Project</button>
+            <button @click="activeMobileTab = 'map'" class="mobile-tab" :class="{ active: activeMobileTab === 'map' }">Map</button>
+          </div>
+
+          <main class="mobile-content" v-if="project">
+            <ChatPanel v-show="activeMobileTab === 'chat'" :project="project" is-mobile />
+            <ProjectPanel v-show="activeMobileTab === 'project'" :project="project" v-model:active-tab="activeProjectTab" is-mobile />
+            <MapModePlaceholder v-show="activeMobileTab === 'map'" />
+          </main>
         </div>
-
-        <main class="mobile-content" v-if="project">
-          <ChatPanel v-show="activeMobileTab === 'chat'" :project="project" is-mobile />
-          <ProjectPanel v-show="activeMobileTab === 'project'" :project="project" v-model:active-tab="activeProjectTab" is-mobile />
-          <MapModePlaceholder v-show="activeMobileTab === 'map'" />
-        </main>
-      </div>
+      </ClientOnly>
     </template>
   </div>
 </template>
@@ -116,7 +118,7 @@ const supabase = useSupabaseTyped()
 const project = ref<Project | null>(null)
 const loading = ref(true)
 const error = ref('')
-const isMobile = ref(false)
+const isMobile = ref(false) // Initialize as false for SSR consistency
 const currentMode = ref('builder')
 const activeMobileTab = ref('chat')
 const activeProjectTab = ref('vision') // Default project tab
@@ -151,7 +153,11 @@ const loadProject = async () => {
 
 const openSettings = () => console.log('Open settings')
 
-const checkIfMobile = () => isMobile.value = window.innerWidth <= 768
+const checkIfMobile = () => {
+  if (typeof window !== 'undefined') {
+    isMobile.value = window.innerWidth <= 768
+  }
+}
 
 // Handle vision updates from chat
 const handleVisionUpdate = (update: any) => {
