@@ -1,34 +1,39 @@
 <template>
-  <div class="auth-callback">
-    <div class="loader-container">
-      <div class="loader"></div>
+  <div class="callback-page">
+    <div class="callback-container">
+      <div class="loading-spinner"></div>
       <p>Completing sign in...</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-
 // This page handles OAuth callbacks
-const router = useRouter()
-const route = useRoute()
-const { isAuthenticated } = useAuth()
+// The Supabase module will automatically handle the auth state
+// We just need to redirect once ready
 
-onMounted(async () => {
-  // Wait a bit for auth state to update
-  await new Promise(resolve => setTimeout(resolve, 500))
-  
-  // Check if we have a redirect URL in the query params
-  const redirectTo = route.query.redirectTo as string || '/dashboard'
-  
-  // Navigate to the intended destination
-  await router.push(redirectTo)
+const user = useSupabaseUser()
+const router = useRouter()
+
+// Watch for user state changes
+watchEffect(async () => {
+  // Once we have a user, redirect to dashboard
+  if (user.value) {
+    await navigateTo('/dashboard')
+  }
+})
+
+// Set a timeout in case something goes wrong
+onMounted(() => {
+  setTimeout(async () => {
+    // If still on this page after 5 seconds, redirect to signin
+    await navigateTo('/auth/signin')
+  }, 5000)
 })
 </script>
 
 <style scoped>
-.auth-callback {
+.callback-page {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -37,18 +42,18 @@ onMounted(async () => {
   background: var(--bg-primary);
 }
 
-.loader-container {
+.callback-container {
   text-align: center;
 }
 
-.loader {
-  width: 48px;
-  height: 48px;
-  border: 3px solid var(--bg-tertiary);
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border-primary);
   border-top-color: var(--primary-500);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
+  animation: spin 0.8s linear infinite;
 }
 
 @keyframes spin {
@@ -57,7 +62,7 @@ onMounted(async () => {
   }
 }
 
-.loader-container p {
+.callback-container p {
   color: var(--text-secondary);
   font-size: 0.875rem;
 }

@@ -92,6 +92,11 @@ import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } fr
 import { useRoute, useRouter } from 'vue-router'
 import type { Database } from '~/types/database'
 
+// Protected page - requires authentication
+definePageMeta({
+  middleware: 'auth'
+})
+
 // Import shared components
 const ChatPanel = defineAsyncComponent(() => import('~/components/builder/ChatPanel.vue'))
 const ProjectPanel = defineAsyncComponent(() => import('~/components/builder/ProjectPanel.vue'))
@@ -104,8 +109,8 @@ type Project = Database['public']['Tables']['projects']['Row']
 // Composables
 const route = useRoute()
 const router = useRouter()
-const { user } = useAuth()
-const supabase = useSupabase()
+const user = useSupabaseUser()
+const supabase = useSupabaseTyped()
 
 // State
 const project = ref<Project | null>(null)
@@ -123,17 +128,13 @@ const isInitialSession = route.query.initial === 'true'
 
 // Methods
 const loadProject = async () => {
-  if (!user.value) {
-    await router.push('/auth/signin')
-    return
-  }
   loading.value = true
   const slug = route.params.slug as string
   const { data, error: fetchError } = await supabase
     .from('projects')
     .select('*')
     .eq('slug', slug)
-    .eq('user_id', user.value.id)
+    .eq('user_id', user.value!.id)
     .single()
   
   if (fetchError || !data) {

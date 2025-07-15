@@ -39,6 +39,8 @@ export function useSupabaseCrud<T extends TableName>(
     options?: {
       page?: number
       pageSize?: number
+      orderBy?: string
+      orderAscending?: boolean
     }
   ) => {
     loading.value = true
@@ -271,7 +273,7 @@ export function useSupabaseCrud<T extends TableName>(
     realtimeChannel = supabase
       .channel(channelName)
       .on(
-        'postgres_changes',
+        'postgres_changes' as any,
         {
           event: options.realtimeEvent || '*',
           schema: 'public',
@@ -280,7 +282,7 @@ export function useSupabaseCrud<T extends TableName>(
             .map(([key, value]) => `${key}=eq.${value}`)
             .join('&') : undefined
         },
-        (payload) => {
+        (payload: any) => {
           // Handle real-time updates
           if (payload.eventType === 'INSERT' && payload.new) {
             items.value = [payload.new as Row, ...items.value]

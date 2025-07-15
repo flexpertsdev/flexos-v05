@@ -235,7 +235,7 @@ interface DesignSystem {
 }
 
 const props = defineProps<Props>()
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 
 // Default design system
 const defaultDesignSystem: DesignSystem = {
@@ -303,7 +303,7 @@ const updateDesignSystem = async () => {
     
     const { error } = await supabase
       .from('projects')
-      .update({ metadata: newMetadata })
+      .update({ metadata: newMetadata } as any)
       .eq('id', props.project.id)
     
     if (error) {

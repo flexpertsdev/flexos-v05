@@ -85,12 +85,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+// Use guest middleware
+definePageMeta({
+  middleware: 'guest'
+})
 
-// Note: This page uses guest middleware to redirect if already authenticated
-
-const { signIn, signInWithProvider } = useAuth()
+const client = useSupabaseClient()
 const router = useRouter()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
@@ -101,26 +103,52 @@ const handleSignIn = async () => {
   loading.value = true
   error.value = ''
   
-  const { error: signInError } = await signIn(email.value, password.value)
+  const { data, error: signInError } = await client.auth.signInWithPassword({
+    email: email.value,
+    password: password.value
+  })
   
   if (signInError) {
-    error.value = signInError
+    error.value = signInError.message
     loading.value = false
   } else {
-    await router.push('/dashboard')
+    toast.success('Welcome back!')
+    await navigateTo('/dashboard')
   }
 }
 
 const signInWithGithub = async () => {
   loading.value = true
   error.value = ''
-  await signInWithProvider('github')
+  
+  const { error: authError } = await client.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
+  
+  if (authError) {
+    error.value = authError.message
+    loading.value = false
+  }
 }
 
 const signInWithGoogle = async () => {
   loading.value = true
   error.value = ''
-  await signInWithProvider('google')
+  
+  const { error: authError } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
+  
+  if (authError) {
+    error.value = authError.message
+    loading.value = false
+  }
 }
 </script>
 

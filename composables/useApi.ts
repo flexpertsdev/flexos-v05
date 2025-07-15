@@ -1,4 +1,4 @@
-interface FetchOptions extends RequestInit {
+interface FetchOptions extends Omit<RequestInit, 'cache'> {
   params?: Record<string, any>
   timeout?: number
   retries?: number
@@ -6,7 +6,7 @@ interface FetchOptions extends RequestInit {
   cache?: {
     ttl?: number
     key?: string
-  }
+  } | RequestCache
 }
 
 interface ApiResponse<T> {
@@ -65,7 +65,7 @@ export function useApi(baseURL?: string) {
     } = options
     
     // Check cache first
-    if (cacheOptions && fetchOptions.method === 'GET') {
+    if (cacheOptions && typeof cacheOptions === 'object' && 'ttl' in cacheOptions && fetchOptions.method === 'GET') {
       const cacheKey = cacheOptions.key || url
       const cached = checkCache(cacheKey, cacheOptions.ttl)
       if (cached) {
@@ -100,7 +100,7 @@ export function useApi(baseURL?: string) {
         const data = await response.json()
         
         // Cache successful GET requests
-        if (cacheOptions && fetchOptions.method === 'GET') {
+        if (cacheOptions && typeof cacheOptions === 'object' && 'ttl' in cacheOptions && fetchOptions.method === 'GET') {
           const cacheKey = cacheOptions.key || url
           cache.set(cacheKey, {
             data,

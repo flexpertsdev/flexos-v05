@@ -33,9 +33,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNavigation } from '~/composables/useNavigation'
-import { useAuth } from '~/composables/useAuth'
+// Remove old auth import
 import AppHeader from '~/components/layout/AppHeader.vue'
 import BottomSheet from '~/components/layout/BottomSheet.vue'
 import HeroSection from '~/components/sections/HeroSection.vue'
@@ -48,8 +48,12 @@ import CommunityShowcase from '~/components/sections/CommunityShowcase.vue'
 import FooterSection from '~/components/sections/FooterSection.vue'
 
 const { menuOpen } = useNavigation()
-const { isAuthenticated, isLoading } = useAuth()
+const user = useSupabaseUser()
 const router = useRouter()
+
+// Computed auth state
+const isAuthenticated = computed(() => !!user.value)
+const isLoading = computed(() => user.value === undefined)
 
 // Redirect authenticated users to dashboard
 onMounted(() => {

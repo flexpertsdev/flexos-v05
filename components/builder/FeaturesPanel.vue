@@ -103,7 +103,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['select:feature', 'add:feature'])
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const features = ref<Feature[]>([])
 const loading = ref(true)
 const error = ref('')

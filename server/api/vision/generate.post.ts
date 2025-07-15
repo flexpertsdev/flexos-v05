@@ -1,16 +1,14 @@
-import { createClient } from '@supabase/supabase-js'
+import { serverSupabaseServiceRole } from '#supabase/server'
 import OpenAI from 'openai'
-
-const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_KEY!
-)
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 })
 
 export default defineEventHandler(async (event) => {
+  // Get service role client for server-side operations
+  const supabase = await serverSupabaseServiceRole(event)
+  
   const { projectId, visionId, type } = await readBody(event)
   
   if (!projectId || !visionId || !type) {

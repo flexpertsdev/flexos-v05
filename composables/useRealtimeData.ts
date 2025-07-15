@@ -163,7 +163,7 @@ export function useRealtimeData<T extends { id: string | number }>(
       
       events.forEach(event => {
         channel!.on(
-          'postgres_changes',
+          'postgres_changes' as any,
           {
             event,
             schema: 'public',

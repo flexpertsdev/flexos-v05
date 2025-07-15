@@ -198,7 +198,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useSupabase } from '~/composables/useSupabase'
+// Use Supabase client directly from Nuxt module
 import type { StructuredVisionDocument } from '~/types/vision'
 import EditableList from './EditableList.vue'
 
@@ -207,7 +207,7 @@ const props = defineProps<{
   project?: any
 }>()
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const visionDoc = ref<StructuredVisionDocument>(createEmptyVision())
 const editingDoc = ref<StructuredVisionDocument>(createEmptyVision())
 const isEditing = ref(false)
@@ -307,7 +307,7 @@ const saveChanges = async () => {
     .upsert({
       ...editingDoc.value,
       project_id: props.projectId
-    })
+    } as any)
   
   if (!error) {
     visionDoc.value = JSON.parse(JSON.stringify(editingDoc.value))

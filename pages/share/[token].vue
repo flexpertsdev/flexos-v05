@@ -167,10 +167,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { useSupabase } from '~/composables/useSupabase'
 
 const route = useRoute()
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 
 const loading = ref(true)
 const error = ref('')

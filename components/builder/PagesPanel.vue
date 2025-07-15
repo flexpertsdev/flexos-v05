@@ -92,7 +92,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['select:page', 'add:page'])
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const pages = ref<Page[]>([])
 const loading = ref(true)
 const error = ref('')

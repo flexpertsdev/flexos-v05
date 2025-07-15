@@ -177,7 +177,7 @@ interface DatabaseSchema {
 }
 
 const props = defineProps<Props>()
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 
 // Default database schema
 const defaultSchema: DatabaseSchema = {
@@ -219,7 +219,7 @@ const updateDatabaseSchema = async () => {
     
     const { error } = await supabase
       .from('projects')
-      .update({ metadata: newMetadata })
+      .update({ metadata: newMetadata } as any)
       .eq('id', props.project.id)
     
     if (error) {

@@ -3,7 +3,7 @@
 
 import { defineEventHandler, readBody, createError, setHeader, sendStream } from 'h3'
 import { Anthropic } from '@anthropic-ai/sdk'
-import { createClient } from '@supabase/supabase-js'
+import { serverSupabaseServiceRole, serverSupabaseClient } from '#supabase/server'
 import type { Database } from '~/types/database'
 import { AnthropicStreamParser } from '~/server/utils/anthropic-stream'
 import type { 
@@ -33,16 +33,8 @@ export default defineEventHandler(async (event) => {
   
   const token = authHeader.split(' ')[1]
   
-  // Initialize Supabase client with service key for server-side auth
-  const supabase = createClient<Database>(
-    config.public.supabaseUrl || '',
-    config.public.supabaseAnonKey || '',
-    {
-      auth: {
-        persistSession: false
-      }
-    }
-  )
+  // Initialize Supabase client for server-side operations
+  const supabase = await serverSupabaseServiceRole<Database>(event)
   
   // Verify the user's token
   const { data: { user }, error: authError } = await supabase.auth.getUser(token)

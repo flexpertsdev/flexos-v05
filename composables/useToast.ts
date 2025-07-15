@@ -21,7 +21,7 @@ export const useToast = () => {
     toasts.value.push(toast)
     
     // Auto remove after duration
-    if (toast.duration > 0) {
+    if (toast.duration && toast.duration > 0) {
       setTimeout(() => {
         removeToast(toast.id)
       }, toast.duration)
@@ -35,9 +35,46 @@ export const useToast = () => {
     }
   }
   
+  // Helper methods for common toast types
+  const success = (message: string, description?: string) => {
+    showToast({
+      title: message,
+      description,
+      type: 'success'
+    })
+  }
+
+  const error = (message: string, description?: string) => {
+    showToast({
+      title: message,
+      description,
+      type: 'error'
+    })
+  }
+
+  const info = (message: string, description?: string) => {
+    showToast({
+      title: message,
+      description,
+      type: 'info'
+    })
+  }
+
+  const warning = (message: string, description?: string) => {
+    showToast({
+      title: message,
+      description,
+      type: 'warning'
+    })
+  }
+
   return {
     toasts: readonly(toasts),
     showToast,
-    removeToast
+    removeToast,
+    success,
+    error,
+    info,
+    warning
   }
 }

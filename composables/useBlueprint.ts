@@ -28,7 +28,7 @@ export const useBlueprint = () => {
       
       // Transform database format to blueprint format
       blueprint.value = transformToBlueprint(data)
-      lastUpdate.value = new Date(data.last_extracted || data.updated_at)
+      lastUpdate.value = new Date((data as any).last_extracted || (data as any).updated_at)
       
     } catch (error) {
       console.error('Blueprint load error:', error)
@@ -85,7 +85,7 @@ export const useBlueprint = () => {
         new_views: update.views || [],
         new_workflows: update.workflows || [],
         new_features: update.features || []
-      })
+      } as any)
       
       if (error) {
         console.error('Failed to save blueprint update:', error)
@@ -234,6 +234,11 @@ function transformToBlueprint(data: any): AppBlueprint {
     },
     
     metrics: data.blueprint_metrics || [],
+    
+    navigation: {
+      primary: [],
+      userFlows: []
+    },
     
     version: '1.0',
     lastUpdated: data.last_extracted || data.updated_at,

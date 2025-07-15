@@ -213,8 +213,8 @@ const emit = defineEmits<{
 }>()
 
 // Auth and DB
-const { user } = useAuth()
-const supabase = useSupabaseClient()
+const user = useSupabaseUser()
+const supabase = useSupabaseTyped()
 
 // Blueprint system
 const { applyBlueprintUpdate } = useBlueprint()

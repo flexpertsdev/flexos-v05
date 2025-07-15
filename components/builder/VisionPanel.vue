@@ -218,7 +218,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
-import { useSupabase } from '~/composables/useSupabase'
+// Use Supabase client directly from Nuxt module
 
 interface VisionDocument {
   id?: string
@@ -233,7 +233,7 @@ const props = defineProps<{
   projectId: string
 }>()
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const visionDoc = ref<VisionDocument | null>(null)
 const editingDoc = ref<VisionDocument | null>(null)
 const isEditing = ref(false)
@@ -263,7 +263,7 @@ const saveChanges = async () => {
     .upsert({
       ...dataToSave,
       project_id: props.projectId
-    })
+    } as any)
     .select()
   
   if (error) {

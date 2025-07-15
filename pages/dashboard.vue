@@ -221,13 +221,16 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import type { Database } from '~/types/database'
 
-// Note: This page requires authentication middleware
+// Protected page - requires authentication
+definePageMeta({
+  middleware: 'auth'
+})
 
 type Project = Database['public']['Tables']['projects']['Row']
 
-const { user } = useAuth()
+const user = useSupabaseUser()
+const supabase = useSupabaseTyped()
 const router = useRouter()
-const supabase = useSupabase()
 
 // State
 const projects = ref<Project[]>([])
@@ -432,7 +435,7 @@ const handleSignOut = async () => {
   
   const { error } = await supabase.auth.signOut()
   if (!error) {
-    await router.push('/')
+    await navigateTo('/auth/signin')
   }
 }
 

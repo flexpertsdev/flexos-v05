@@ -331,7 +331,7 @@ interface FocusSession {
 }
 
 const props = defineProps<Props>()
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 
 // State
 const activeSession = ref<FocusSession | null>(null)
@@ -500,7 +500,7 @@ const saveSessionToDatabase = async (isComplete = false) => {
     
     await supabase
       .from('projects')
-      .update({ metadata })
+      .update({ metadata } as any)
       .eq('id', props.project.id)
       
   } catch (error) {

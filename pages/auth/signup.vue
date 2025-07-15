@@ -7,8 +7,8 @@
             <div class="logo-icon">F</div>
             <span>FlexOS</span>
           </NuxtLink>
-          <h1>Create your account</h1>
-          <p>Start building amazing projects with FlexOS</p>
+          <h1>Create an account</h1>
+          <p>Start building amazing apps with FlexOS</p>
         </div>
 
         <form @submit.prevent="handleSignUp" class="auth-form">
@@ -34,32 +34,23 @@
               placeholder="Create a password"
               required
               autocomplete="new-password"
-              :disabled="loading"
               minlength="8"
-            >
-            <p class="input-hint">Must be at least 8 characters</p>
-          </div>
-
-          <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input
-              id="confirmPassword"
-              v-model="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              required
-              autocomplete="new-password"
               :disabled="loading"
             >
+            <p class="form-hint">Must be at least 8 characters</p>
           </div>
 
           <div v-if="error" class="error-message">
             {{ error }}
           </div>
 
+          <div v-if="success" class="success-message">
+            Check your email to confirm your account!
+          </div>
+
           <button type="submit" class="submit-button" :disabled="loading">
             <span v-if="loading">Creating account...</span>
-            <span v-else>Create account</span>
+            <span v-else>Sign up</span>
           </button>
         </form>
 
@@ -95,63 +86,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+// Use guest middleware
+definePageMeta({
+  middleware: 'guest'
+})
 
-// Note: This page uses guest middleware to redirect if already authenticated
-
-const { signUp, signInWithProvider } = useAuth()
-const router = useRouter()
+const client = useSupabaseClient()
+const toast = useToast()
 
 const email = ref('')
 const password = ref('')
-const confirmPassword = ref('')
 const loading = ref(false)
 const error = ref('')
+const success = ref(false)
 
 const handleSignUp = async () => {
   loading.value = true
   error.value = ''
+  success.value = false
   
-  // Validate passwords match
-  if (password.value !== confirmPassword.value) {
-    error.value = 'Passwords do not match'
-    loading.value = false
-    return
-  }
+  const { data, error: signUpError } = await client.auth.signUp({
+    email: email.value,
+    password: password.value,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
   
-  // Validate password length
-  if (password.value.length < 8) {
-    error.value = 'Password must be at least 8 characters'
-    loading.value = false
-    return
-  }
-  
-  const { data, error: signUpError } = await signUp(email.value, password.value)
+  loading.value = false
   
   if (signUpError) {
-    error.value = signUpError
-    loading.value = false
+    error.value = signUpError.message
   } else {
-    // Since email confirmation is disabled, the user is automatically logged in
-    // Redirect to dashboard or builder
-    await router.push('/dashboard')
+    success.value = true
+    toast.success('Check your email to confirm your account!')
   }
 }
 
 const signUpWithGithub = async () => {
   loading.value = true
   error.value = ''
-  await signInWithProvider('github')
+  
+  const { error: authError } = await client.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
+  
+  if (authError) {
+    error.value = authError.message
+    loading.value = false
+  }
 }
 
 const signUpWithGoogle = async () => {
   loading.value = true
   error.value = ''
-  await signInWithProvider('google')
+  
+  const { error: authError } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
+  })
+  
+  if (authError) {
+    error.value = authError.message
+    loading.value = false
+  }
 }
 </script>
 
 <style scoped>
+/* Same styles as signin.vue */
 .auth-page {
   min-height: 100vh;
   min-height: 100dvh;
@@ -253,7 +261,7 @@ const signUpWithGoogle = async () => {
   cursor: not-allowed;
 }
 
-.input-hint {
+.form-hint {
   font-size: 0.75rem;
   color: var(--text-tertiary);
   margin-top: -0.25rem;
@@ -263,6 +271,15 @@ const signUpWithGoogle = async () => {
   background: rgba(248, 81, 73, 0.1);
   border: 1px solid rgba(248, 81, 73, 0.3);
   color: var(--error);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.success-message {
+  background: rgba(46, 160, 67, 0.1);
+  border: 1px solid rgba(46, 160, 67, 0.3);
+  color: var(--success);
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.875rem;

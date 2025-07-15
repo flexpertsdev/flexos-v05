@@ -347,7 +347,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useSupabase } from '~/composables/useSupabase'
+// Use Supabase client directly from Nuxt module
 import { useToast } from '~/composables/useToast'
 
 interface VisionDocument {
@@ -408,7 +408,7 @@ const props = defineProps<{
   projectId: string
 }>()
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const { showToast } = useToast()
 
 const vision = ref<VisionDocument | null>(null)
@@ -434,11 +434,9 @@ const readinessColorClass = computed(() => {
 const loadVision = async () => {
   try {
     const { data, error } = await supabase
-      .from('project_visions')
+      .from('vision_documents')
       .select('*')
       .eq('project_id', props.projectId)
-      .order('version', { ascending: false })
-      .limit(1)
       .single()
 
     if (error && error.code !== 'PGRST116') throw error
@@ -453,12 +451,14 @@ const loadVision = async () => {
 const analyzeConversation = async () => {
   isAnalyzing.value = true
   try {
-    const response = await $fetch('/api/vision/analyze', {
+    const response = await $fetch<{ success: boolean; vision?: any }>('/api/vision/analyze', {
       method: 'POST',
       body: { projectId: props.projectId }
     })
 
-    vision.value = response.vision
+    if (response.vision) {
+      vision.value = response.vision
+    }
     
     showToast({
       title: 'Vision Updated',

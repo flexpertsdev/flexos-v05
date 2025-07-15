@@ -56,7 +56,7 @@ export const useChat = (options: UseChatOptions = {}) => {
     if (!projectId.value) return
     
     try {
-      const supabase = useSupabase()
+      const supabase = useSupabaseClient()
       const { data: chatData } = await supabase
         .from('ai_chats')
         .select(`
@@ -71,8 +71,8 @@ export const useChat = (options: UseChatOptions = {}) => {
         .eq('status', 'active')
         .single()
         
-      if (chatData?.chat_messages) {
-        state.messages = chatData.chat_messages.sort((a: any, b: any) => 
+      if (chatData && 'chat_messages' in chatData) {
+        state.messages = (chatData as any).chat_messages.sort((a: any, b: any) => 
           new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
         )
       }
@@ -124,7 +124,7 @@ export const useChat = (options: UseChatOptions = {}) => {
       abortController = new AbortController()
       
       // Get auth token from Supabase
-      const supabase = useSupabase()
+      const supabase = useSupabaseClient()
       const { data: { session } } = await supabase.auth.getSession()
       
       if (!session) {

@@ -1,4 +1,4 @@
-import { Ref } from 'vue'
+import type { Ref } from 'vue'
 
 export interface PersistOptions {
   storage?: 'local' | 'session' | 'cookie'
@@ -83,7 +83,7 @@ export function usePersistentState<T>(
     state.value = defaultValue
     
     if (storage === 'cookie') {
-      cookie.value = null
+      cookie.value = null as any
     } else if (process.client) {
       const store = storage === 'local' ? localStorage : sessionStorage
       store.removeItem(key)

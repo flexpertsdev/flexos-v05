@@ -1,13 +1,9 @@
+// Guest middleware - redirect to dashboard if already authenticated
 export default defineNuxtRouteMiddleware((to, from) => {
-  const { isAuthenticated, isLoading } = useAuth()
+  const user = useSupabaseUser()
   
-  // Wait for auth to initialize
-  if (isLoading.value) {
-    return
-  }
-  
-  // Redirect to dashboard if authenticated
-  if (isAuthenticated.value) {
+  // If user is already authenticated, redirect to dashboard
+  if (user.value) {
     return navigateTo('/dashboard')
   }
 })

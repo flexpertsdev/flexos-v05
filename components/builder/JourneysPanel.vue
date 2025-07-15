@@ -91,7 +91,7 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['select:journey', 'add:journey'])
 
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 const journeys = ref<Journey[]>([])
 const loading = ref(true)
 const error = ref('')

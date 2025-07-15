@@ -129,7 +129,7 @@ const expandedSections = ref({
 })
 
 // Load data
-const supabase = useSupabase()
+const supabase = useSupabaseTyped()
 
 const loadProjectData = async () => {
   // Load pages

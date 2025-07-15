@@ -399,7 +399,7 @@ const extractFromConversation = async () => {
   isExtracting.value = true
   try {
     // Get recent messages
-    const messages = await $fetch('/api/chat/messages', {
+    const messages = await $fetch<any[]>('/api/chat/messages', {
       query: { projectId: props.projectId, limit: 20 }
     })
     
@@ -407,7 +407,7 @@ const extractFromConversation = async () => {
     await $fetch('/api/vision/extract', {
       method: 'POST',
       body: {
-        messages,
+        messages: messages || [],
         projectId: props.projectId
       }
     })

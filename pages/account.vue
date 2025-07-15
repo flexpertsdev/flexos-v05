@@ -330,12 +330,16 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
-import { useSupabase } from '~/composables/useSupabase'
 
-// Note: This page requires authentication middleware
+// Protected page - requires authentication
+definePageMeta({
+  middleware: 'auth'
+})
 
-const { user, getUserProfile, updateProfile: updateUserProfile, updatePassword, signOut } = useAuth()
+const user = useSupabaseUser()
+const supabase = useSupabaseTyped()
 const router = useRouter()
+const toast = useToast()
 
 // Tab state
 const activeTab = ref('profile')
@@ -380,9 +384,6 @@ const preferences = reactive({
 const preferencesLoading = ref(false)
 const preferencesSuccess = ref(false)
 
-// Get supabase instance
-const supabase = useSupabase()
-
 // Computed
 const userInitial = computed(() => {
   if (user.value?.email) {
@@ -402,7 +403,7 @@ const handleSignOut = async () => {
   
   const { error } = await supabase.auth.signOut()
   if (!error) {
-    await router.push('/')
+    await navigateTo('/auth/signin')
   }
 }
 
@@ -419,10 +420,23 @@ const handleClickOutside = (event: MouseEvent) => {
   }
 }
 
+// Helper function to get user profile
+const getUserProfile = async () => {
+  if (!user.value) return { data: null, error: new Error('No user') }
+  
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .eq('id', user.value.id)
+    .single()
+  
+  return { data, error }
+}
+
 // Load user profile on mount
 onMounted(async () => {
-  const { data } = await getUserProfile()
-  if (data) {
+  const { data, error } = await getUserProfile()
+  if (data && !error) {
     profile.username = data.username || ''
     profile.full_name = data.full_name || ''
     profile.company = data.company || ''
@@ -448,21 +462,27 @@ onUnmounted(() => {
 
 // Update profile
 const updateProfile = async () => {
+  if (!user.value) return
+  
   profileLoading.value = true
   profileError.value = ''
   profileSuccess.value = false
   
-  const { error } = await updateUserProfile({
-    username: profile.username,
-    full_name: profile.full_name,
-    company: profile.company,
-    bio: profile.bio
-  })
+  const { error } = await supabase
+    .from('users')
+    .update({
+      username: profile.username,
+      full_name: profile.full_name,
+      company: profile.company,
+      bio: profile.bio
+    } as any)
+    .eq('id', user.value.id)
   
   if (error) {
-    profileError.value = error
+    profileError.value = error.message
   } else {
     profileSuccess.value = true
+    toast.success('Profile updated successfully!')
     setTimeout(() => {
       profileSuccess.value = false
     }, 3000)
@@ -489,10 +509,12 @@ const updatePasswordHandler = async () => {
     return
   }
   
-  const { error } = await updatePassword(security.newPassword)
+  const { error } = await supabase.auth.updateUser({
+    password: security.newPassword
+  })
   
   if (error) {
-    securityError.value = error
+    securityError.value = error.message
   } else {
     securitySuccess.value = true
     security.newPassword = ''
@@ -510,14 +532,19 @@ const updatePreferences = async () => {
   preferencesLoading.value = true
   preferencesSuccess.value = false
   
-  const { error } = await updateUserProfile({
-    settings: {
-      theme: preferences.theme,
-      language: preferences.language,
-      emailNotifications: preferences.emailNotifications,
-      marketingEmails: preferences.marketingEmails
-    }
-  })
+  if (!user.value) return
+  
+  const { error } = await supabase
+    .from('users')
+    .update({
+      settings: {
+        theme: preferences.theme,
+        language: preferences.language,
+        emailNotifications: preferences.emailNotifications,
+        marketingEmails: preferences.marketingEmails
+      }
+    } as any)
+    .eq('id', user.value.id)
   
   if (!error) {
     preferencesSuccess.value = true
@@ -536,7 +563,8 @@ const deleteAccount = async () => {
   showDeleteConfirm.value = false
   
   // Sign out and redirect
-  await signOut()
+  await supabase.auth.signOut()
+  await navigateTo('/auth/signin')
 }
 </script>
 

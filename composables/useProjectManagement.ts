@@ -5,12 +5,12 @@ import type { Database } from '~/types/database'
 type Project = Database['public']['Tables']['projects']['Row']
 
 export function useProjectManagement() {
-  const { user } = useAuth()
+  const user = useSupabaseUser()
   const toast = useToast()
   
   // 1. CRUD operations with Supabase
   const {
-    items: projects,
+    items: projectsFromDB,
     loading: projectsLoading,
     error: projectsError,
     fetchItems: fetchProjects,
@@ -23,6 +23,10 @@ export function useProjectManagement() {
     orderBy: 'updated_at',
     orderAscending: false
   })
+  
+  // Local state for optimistic updates
+  const optimisticProjects = ref<Project[]>([])
+  const projects = computed(() => [...optimisticProjects.value, ...projectsFromDB.value])
   
   // 2. Local state with persistence
   const [selectedProjectId, setSelectedProjectId] = useLocalStorage<string | null>(
@@ -44,7 +48,7 @@ export function useProjectManagement() {
   const {
     data: activeUsers,
     isConnected: presenceConnected
-  } = useRealtimeData<{ user_id: string; project_id: string; last_seen: string }>({
+  } = useRealtimeData<{ id: string; user_id: string; project_id: string; last_seen: string }>({
     table: 'project_presence',
     filter: selectedProjectId.value ? { project_id: selectedProjectId.value } : undefined,
     events: ['INSERT', 'UPDATE', 'DELETE']
@@ -117,29 +121,29 @@ export function useProjectManagement() {
     }
     
     // Apply optimistic update
-    projects.value = [optimisticProject as any, ...projects.value]
+    optimisticProjects.value = [optimisticProject as any]
     
     try {
-      // Create actual project
+      // Create actual project with required fields
       const { data, error } = await createProject({
+        user_id: user.value!.id,
         name,
+        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
         description,
         status: 'active',
         metadata: { ideas }
-      })
+      } as any)
       
       if (error) throw error
       
-      // Replace optimistic with real data
-      projects.value = projects.value.map(p =>
-        p.id === tempId ? data : p
-      )
+      // Remove optimistic update now that we have real data
+      optimisticProjects.value = []
       
       toast.success('Project created successfully')
       return data
     } catch (error) {
       // Rollback optimistic update
-      projects.value = projects.value.filter(p => p.id !== tempId)
+      optimisticProjects.value = []
       toast.error('Failed to create project')
       throw error
     }

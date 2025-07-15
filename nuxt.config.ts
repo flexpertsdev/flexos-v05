@@ -24,7 +24,8 @@ export default defineNuxtConfig({
       login: '/auth/signin',
       callback: '/dashboard',
       exclude: ['/', '/auth/*', '/wizards/*', '/academy', '/meet', '/meet/*']
-    }
+    },
+    types: './types/database.d.ts'
   },
 
   css: [
