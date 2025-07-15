@@ -78,7 +78,7 @@
             class="flex items-center gap-2"
           >
             <input
-              v-model="editingDoc!.user_personas[index]"
+              v-model="editingDoc!.user_personas![index]"
               class="flex-1 p-2 bg-surface rounded-md text-text-primary"
               placeholder="User persona..."
             />
@@ -123,7 +123,7 @@
             class="flex items-center gap-2"
           >
             <input
-              v-model="editingDoc!.pain_points[index]"
+              v-model="editingDoc!.pain_points![index]"
               class="flex-1 p-2 bg-surface rounded-md text-text-primary"
               placeholder="Pain point..."
             />
@@ -168,7 +168,7 @@
             class="flex items-center gap-2"
           >
             <input
-              v-model="editingDoc!.key_features[index]"
+              v-model="editingDoc!.key_features![index]"
               class="flex-1 p-2 bg-surface rounded-md text-text-primary"
               placeholder="Key feature..."
             />
@@ -310,7 +310,7 @@ const addItem = (field: 'user_personas' | 'pain_points' | 'key_features') => {
 // Remove item from array
 const removeItem = (field: 'user_personas' | 'pain_points' | 'key_features', index: number) => {
   if (!editingDoc.value) return
-  editingDoc.value[field] = editingDoc.value[field].filter((_, i) => i !== index)
+  editingDoc.value[field] = editingDoc.value[field]!.filter((_, i) => i !== index)
 }
 
 // Calculate completion percentage
@@ -319,9 +319,9 @@ const completionPercentage = computed(() => {
   
   let score = 0
   if (visionDoc.value.elevator_pitch) score += 25
-  if (visionDoc.value.user_personas?.length > 0) score += 25
-  if (visionDoc.value.pain_points?.length > 0) score += 25
-  if (visionDoc.value.key_features?.length > 0) score += 25
+  if (visionDoc.value.user_personas && visionDoc.value.user_personas.length > 0) score += 25
+  if (visionDoc.value.pain_points && visionDoc.value.pain_points.length > 0) score += 25
+  if (visionDoc.value.key_features && visionDoc.value.key_features.length > 0) score += 25
   
   return score
 })

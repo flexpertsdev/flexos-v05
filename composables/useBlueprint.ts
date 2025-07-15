@@ -21,7 +21,7 @@ export const useBlueprint = () => {
         .eq('project_id', projectId)
         .single()
       
-      if (error) {
+      if (error || !data) {
         console.error('Failed to load blueprint:', error)
         return
       }
