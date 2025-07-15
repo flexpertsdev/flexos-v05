@@ -1,7 +1,7 @@
 import type { BlueprintUpdate, AppBlueprint } from '~/types/blueprint'
 
 export const useBlueprint = () => {
-  const supabase = useSupabaseClient()
+  const supabase = useSupabaseTyped()
   const user = useSupabaseUser()
   
   // Current blueprint state
@@ -91,7 +91,7 @@ export const useBlueprint = () => {
       
       // Save to database using the merge function
       const { error } = await supabase.rpc('merge_blueprint_update', {
-        doc_id: visionDoc.id,
+        doc_id: (visionDoc as any).id,
         new_actions: update.actions || [],
         new_data: update.dataTypes || [],
         new_views: update.views || [],
